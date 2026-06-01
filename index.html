@@ -1228,7 +1228,7 @@
         // ══════════════════════════════════════════════════════
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
         // ══════════════════════════════════════════════════════
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx6Q0zIqQAFtOL7fiP6kM8YpS9Gnk7SWdqN-BCSaqAMWVMRtOUSx_YmWDXATZcZ8prg/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        const GAS_URL = ''; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
         // ══ API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
@@ -1311,7 +1311,7 @@
 
         // System variables
         let currentRole = 'admin';
-        let isFirstLogin = true;
+        let isFirstLogin = false; // Set true to force admin password change on first login
         let isExamActive = false;
         let examTimeInterval;
         let examTimeRemaining = 1800; // 30 mins in secs
@@ -1356,6 +1356,7 @@
         // Render Users Table dynamically based on search & filter
         function renderUsersTable(filteredData = usersData) {
             const tbody = document.getElementById('user-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             filteredData.forEach(user => {
@@ -1661,32 +1662,48 @@
             document.getElementById('login-container').classList.add('hidden');
             document.getElementById('top-navbar').classList.remove('hidden');
             document.getElementById('app-container').classList.remove('hidden');
-            
-            // Auto select matching role selector visual & change layouts
-            document.getElementById('role-selector').value = activeRole;
-            switchRole(activeRole);
 
-            // Change Top Nav Profile Card beautifully to dynamic logged-in user
-            document.getElementById('top-user-avatar').src = user.avatar;
-            document.getElementById('top-user-name').textContent = `${user.firstName} ${user.lastName}`;
-            document.getElementById('top-user-username').textContent = `@${user.username}`;
-            document.getElementById('top-user-role').textContent = user.role;
+            // Switch layout & sidebar first
+            const roleSelector = document.getElementById('role-selector');
+            if (roleSelector) roleSelector.value = activeRole;
 
-            // If logged in as Parent, update Kid Profile View dynamically in Parent Dashboard
+            try { switchRole(activeRole); } catch(e) { console.error('switchRole error:', e); }
+
+            // Override profile card with actual logged-in user data (after switchRole)
+            const safeAvatar = user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256';
+            const safeName   = ((user.firstName || '') + ' ' + (user.lastName || '')).trim() || user.username || 'User';
+            const safeUname  = '@' + (user.username || activeRole);
+            const safeRole   = user.role || activeRole;
+
+            const elAvatar   = document.getElementById('top-user-avatar');
+            const elName     = document.getElementById('top-user-name');
+            const elUname    = document.getElementById('top-user-username');
+            const elRole     = document.getElementById('top-user-role');
+            if (elAvatar) elAvatar.src   = safeAvatar;
+            if (elName)   elName.textContent   = safeName;
+            if (elUname)  elUname.textContent  = safeUname;
+            if (elRole)   elRole.textContent   = safeRole;
+
+            // Parent: update Kid Profile section
             if (activeRole === 'parent' && user.linkedStudent) {
-                document.getElementById('parent-kid-avatar').src = user.linkedStudent.avatar;
-                document.getElementById('parent-kid-name').textContent = `${user.linkedStudent.firstName} ${user.linkedStudent.lastName} (${user.linkedStudent.classroom})`;
+                const kidAvatar = document.getElementById('parent-kid-avatar');
+                const kidName   = document.getElementById('parent-kid-name');
+                if (kidAvatar) kidAvatar.src = user.linkedStudent.avatar || safeAvatar;
+                if (kidName)   kidName.textContent = `${user.linkedStudent.firstName || ''} ${user.linkedStudent.lastName || ''} (${user.linkedStudent.classroom || ''})`;
             }
 
-            // Sync student statistics if logged in as student
+            // Student: personalise welcome text
             if (activeRole === 'student') {
-                document.getElementById('student-welcome-title').textContent = `ยินดีต้อนรับกลับมา, ${user.firstName} ${user.lastName}!`;
-                document.getElementById('student-leaderboard-avatar').src = user.avatar;
-                document.getElementById('student-leaderboard-name').textContent = `${user.firstName} ${user.lastName} (คุณ)`;
+                const welcomeEl = document.getElementById('student-welcome-title');
+                const lbAvatar  = document.getElementById('student-leaderboard-avatar');
+                const lbName    = document.getElementById('student-leaderboard-name');
+                if (welcomeEl) welcomeEl.textContent = `ยินดีต้อนรับกลับมา, ${safeName}!`;
+                if (lbAvatar)  lbAvatar.src = safeAvatar;
+                if (lbName)    lbName.textContent = `${safeName} (คุณ)`;
             }
 
-            initCharts();
-            renderUsersTable();
+            try { initCharts(); } catch(e) { console.error('initCharts error:', e); }
+            try { renderUsersTable(); } catch(e) { console.error('renderUsersTable error:', e); }
         }
 
         function handleLogout() {
@@ -2327,12 +2344,14 @@
 
         function initCharts() {
             // Safety destruction of previous graphs
-            if (trafficChartInstance) trafficChartInstance.destroy();
-            if (attendanceChartInstance) attendanceChartInstance.destroy();
-            if (teacherGradesChartInstance) teacherGradesChartInstance.destroy();
+            if (trafficChartInstance) { trafficChartInstance.destroy(); trafficChartInstance = null; }
+            if (attendanceChartInstance) { attendanceChartInstance.destroy(); attendanceChartInstance = null; }
+            if (teacherGradesChartInstance) { teacherGradesChartInstance.destroy(); teacherGradesChartInstance = null; }
 
             // Traffic Chart
-            const ctx1 = document.getElementById('trafficChart').getContext('2d');
+            const chartEl1 = document.getElementById('trafficChart');
+            if (!chartEl1) return;
+            const ctx1 = chartEl1.getContext('2d');
             trafficChartInstance = new Chart(ctx1, {
                 type: 'line',
                 data: {
