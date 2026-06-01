@@ -247,7 +247,7 @@
                                     <i class="fa-solid fa-cubes text-2xl"></i>
                                     <span class="text-xs font-semibold">สร้างข้อสอบ</span>
                                 </button>
-                                <button onclick="alert('ส่งประกาศแจ้งไปยังนักเรียนและผู้ปกครองสำเร็จ!')" class="p-4 bg-slate-50 hover:bg-amber-50 hover:text-amber-600 transition rounded-xl text-center flex flex-col items-center justify-center space-y-2 dark:bg-slate-800 dark:hover:bg-slate-700">
+                                <button onclick="openAnnouncementModal()" class="p-4 bg-slate-50 hover:bg-amber-50 hover:text-amber-600 transition rounded-xl text-center flex flex-col items-center justify-center space-y-2 dark:bg-slate-800 dark:hover:bg-slate-700">
                                     <i class="fa-solid fa-bullhorn text-2xl"></i>
                                     <span class="text-xs font-semibold">ประกาศแจ้งข่าว</span>
                                 </button>
@@ -592,7 +592,7 @@
                         </table>
                     </div>
                     <div class="mt-4 flex justify-end">
-                        <button onclick="alert('บันทึกการปรับตั้งค่าตารางสิทธิ์การใช้งานเรียบร้อยแล้ว!')" class="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-opacity-95">บันทึกโครงสิทธิ์ (Save Matrix)</button>
+                        <button onclick="savePermissions()" class="px-5 py-2.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-opacity-95">บันทึกโครงสิทธิ์ (Save Matrix)</button>
                     </div>
                 </div>
             </section>
@@ -604,10 +604,11 @@
                         <h2 class="text-2xl font-bold dark:text-white">แผงจัดการข้อมูลผู้ใช้ (User Management Board)</h2>
                         <p class="text-sm text-slate-500">เพิ่ม, แก้ไข, ระงับสิทธิ์บัญชีผู้ใช้งาน และประมวลผลนำเข้า-ส่งออก</p>
                     </div>
-                    <div class="flex space-x-2">
+                    <div class="flex flex-wrap gap-2">
                         <button onclick="openAddUserModal()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition"><i class="fa-solid fa-plus mr-1"></i> เพิ่มผู้ใช้ใหม่</button>
-                        <button onclick="exportUserData('csv')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold transition">CSV</button>
-                        <button onclick="exportUserData('pdf')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold transition">PDF</button>
+                        <button onclick="openBulkImportModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition"><i class="fa-solid fa-file-arrow-up mr-1"></i> นำเข้าจำนวนมาก (CSV)</button>
+                        <button onclick="exportUserData('csv')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-download mr-1"></i> CSV</button>
+                        <button onclick="exportUserData('pdf')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold transition"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
                     </div>
                 </div>
 
@@ -649,10 +650,15 @@
                         <h2 class="text-2xl font-bold dark:text-white">คลังสื่อการเรียนการสอน (Media Library Portal)</h2>
                         <p class="text-sm text-slate-500">คลังดาวน์โหลด สื่อสิ่งพิมพ์ เอกสาร วิดีโอสื่อประกอบการเรียน</p>
                     </div>
-                    <a href="https://drive.google.com/drive/folders/1fz8_oGmr6e48FbZirSZh44eCubeUYY_j" target="_blank"
-                       class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-opacity-95 transition">
-                        <i class="fa-brands fa-google-drive mr-1"></i> เปิด Google Drive
-                    </a>
+                    <div class="flex gap-2">
+                        <button onclick="openUploadMediaModal()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1"></i> เพิ่มสื่อ
+                        </button>
+                        <a href="https://drive.google.com/drive/folders/1fz8_oGmr6e48FbZirSZh44eCubeUYY_j" target="_blank"
+                           class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-opacity-95 transition">
+                            <i class="fa-brands fa-google-drive mr-1"></i> Google Drive
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Filter Tabs -->
@@ -720,51 +726,69 @@
                     <p class="text-sm text-slate-500">ติดตามรายการส่งงาน ตรวจสอบสถานะการบ้าน และให้คะแนน</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Create Work (For Teacher) -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 shadow-sm">
-                        <h3 class="font-bold text-lg mb-4">ส่งงาน/มอบหมายงานใหม่ (สำหรับครู)</h3>
-                        <form class="space-y-4" onsubmit="event.preventDefault(); alert('ส่งมอบหมายงานถึงผู้เรียนทุกคนในชั้นเรียนสำเร็จ!');">
-                            <div>
-                                <label class="text-xs font-bold uppercase text-slate-400">ชื่อหัวข้องาน</label>
-                                <input type="text" placeholder="ระบุชื่องาน เช่น สรุปแนวคิด Abstract ม.2" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent">
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-xs font-bold uppercase text-slate-400">กำหนดส่ง</label>
-                                    <input type="date" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent">
-                                </div>
-                                <div>
-                                    <label class="text-xs font-bold uppercase text-slate-400">คะแนนเต็ม</label>
-                                    <input type="number" placeholder="20" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent">
-                                </div>
-                            </div>
-                            <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-opacity-95 transition">เผยแพร่งานและการบ้าน</button>
-                        </form>
-                    </div>
-
-                    <!-- Submission Status (For Students) -->
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 flex flex-col justify-between shadow-sm">
-                        <div>
-                            <h3 class="font-bold text-lg mb-4">สถานะส่งงานและการประเมิน (สำหรับนักเรียน)</h3>
-                            <div class="space-y-3">
-                                <div class="p-3 bg-emerald-50 rounded-xl flex justify-between items-center dark:bg-slate-800">
-                                    <div>
-                                        <h4 class="font-semibold text-sm">แบบฝึกหัด Scratch (ม.2)</h4>
-                                        <span class="text-[10px] text-green-600">ตรวจแล้ว • ได้รับ 18/20 คะแนน</span>
-                                    </div>
-                                    <span class="px-2.5 py-1 bg-green-100 text-green-800 text-[10px] font-bold rounded-full">Completed</span>
-                                </div>
-                                <div class="p-3 bg-amber-50 rounded-xl flex justify-between items-center dark:bg-slate-800">
-                                    <div>
-                                        <h4 class="font-semibold text-sm">ใบสรุปความคิดรวบยอด Abstraction</h4>
-                                        <span class="text-[10px] text-amber-600">ยังไม่ได้ส่งงาน • กำหนดส่ง พรุ่งนี้</span>
-                                    </div>
-                                    <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-full">Pending</span>
-                                </div>
-                            </div>
+                <!-- Teacher: Create Assignment -->
+                <div id="assign-teacher-panel" class="hidden bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 shadow-sm">
+                    <h3 class="font-bold text-lg mb-4 dark:text-white"><i class="fa-solid fa-chalkboard-user text-primary mr-2"></i>มอบหมายงานใหม่</h3>
+                    <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" onsubmit="submitNewAssignment(event)">
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-bold uppercase text-slate-400">ชื่อหัวข้องาน <span class="text-red-500">*</span></label>
+                            <input id="assign-title" type="text" placeholder="เช่น ใบงานสรุปแนวคิดเชิงคำนวณ ม.2" required
+                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                         </div>
-                        <button onclick="alert('กรุณาเลือกไฟล์เพื่อทำการอัปโหลดส่งการบ้านเข้าระบบ')" class="mt-4 w-full py-3 bg-indigo-50 text-primary font-bold rounded-xl hover:bg-indigo-100 transition dark:bg-slate-800 dark:text-indigo-200"><i class="fa-solid fa-file-arrow-up mr-1"></i> เลือกส่งการบ้านออนไลน์ (Upload Work)</button>
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-bold uppercase text-slate-400">คำอธิบาย/รายละเอียด</label>
+                            <textarea id="assign-desc" rows="2" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"
+                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold uppercase text-slate-400">กำหนดส่ง <span class="text-red-500">*</span></label>
+                            <input id="assign-due" type="date" required
+                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold uppercase text-slate-400">คะแนนเต็ม</label>
+                            <input id="assign-score" type="number" placeholder="20" min="1" value="20"
+                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold uppercase text-slate-400">ระดับชั้น</label>
+                            <input id="assign-class" type="text" placeholder="ม.2/1 หรือทุกห้อง"
+                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold uppercase text-slate-400">วิชา</label>
+                            <input id="assign-subject" type="text" placeholder="วิทยาการคำนวณ"
+                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-opacity-95 transition">
+                                <i class="fa-solid fa-paper-plane mr-1"></i>เผยแพร่งานให้นักเรียนทันที
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Assignment List (visible to all roles) -->
+                <div class="bg-white rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700">
+                        <div>
+                            <h3 class="font-bold text-base dark:text-white"><i class="fa-solid fa-list-check text-primary mr-2"></i>งานที่มอบหมาย</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">รายการงานและการบ้านทั้งหมดในระบบ</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <select id="assign-filter-status" onchange="renderAssignments()" class="text-xs px-2 py-1.5 border border-slate-200 rounded-lg dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none">
+                                <option value="all">ทุกสถานะ</option>
+                                <option value="pending">รอส่ง</option>
+                                <option value="submitted">ส่งแล้ว</option>
+                                <option value="graded">ตรวจแล้ว</option>
+                                <option value="late">เกินกำหนด</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="assign-list" class="divide-y divide-slate-100 dark:divide-slate-800 max-h-96 overflow-y-auto"></div>
+                    <div id="assign-empty" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                        <i class="fa-solid fa-clipboard-check text-4xl mb-3 text-slate-300"></i>
+                        <p class="text-sm">ยังไม่มีงานที่มอบหมาย</p>
                     </div>
                 </div>
             </section>
@@ -879,6 +903,175 @@
     </div>
 
 
+
+
+    <!-- ANNOUNCEMENT MODAL -->
+    <div id="announcement-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
+        <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold dark:text-white"><i class="fa-solid fa-bullhorn text-amber-500 mr-2"></i>ส่งประกาศแจ้งข่าว</h3>
+                <button onclick="closeAnnouncementModal()" class="text-slate-400 hover:text-red-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">หัวข้อประกาศ <span class="text-red-500">*</span></label>
+                    <input id="ann-title" type="text" placeholder="เช่น แจ้งหยุดเรียนวันพรุ่งนี้" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">รายละเอียด <span class="text-red-500">*</span></label>
+                    <textarea id="ann-body" rows="4" placeholder="เนื้อหาประกาศ..." class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">ส่งถึง</label>
+                        <select id="ann-target" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="all">ทุกคน</option>
+                            <option value="student">นักเรียน</option>
+                            <option value="teacher">ครู</option>
+                            <option value="parent">ผู้ปกครอง</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">ประเภท</label>
+                        <select id="ann-type" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="info">ℹ️ ข้อมูลทั่วไป</option>
+                            <option value="warning">⚠️ แจ้งเตือน</option>
+                            <option value="urgent">🚨 ด่วนมาก</option>
+                            <option value="event">📅 กิจกรรม</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeAnnouncementModal()" class="px-4 py-2 text-sm text-slate-500 hover:text-slate-700">ยกเลิก</button>
+                <button onclick="submitAnnouncement()" class="px-5 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg hover:bg-amber-600 transition"><i class="fa-solid fa-paper-plane mr-1"></i>ส่งประกาศทันที</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgot-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
+        <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold dark:text-white"><i class="fa-solid fa-key text-indigo-500 mr-2"></i>ลืมรหัสผ่าน</h3>
+                <button onclick="closeForgotModal()" class="text-slate-400 hover:text-red-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-sm text-slate-500">กรอก Username เพื่อค้นหาบัญชี แล้วติดต่อ Admin เพื่อรีเซ็ตรหัสผ่าน</p>
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase">Username</label>
+                <input id="forgot-username" type="text" placeholder="กรอก username ของคุณ" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <div id="forgot-result" class="hidden p-3 rounded-lg text-sm"></div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeForgotModal()" class="px-4 py-2 text-sm text-slate-500">ยกเลิก</button>
+                <button onclick="lookupForgotUser()" class="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-opacity-90"><i class="fa-solid fa-magnifying-glass mr-1"></i>ค้นหาบัญชี</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BULK IMPORT MODAL -->
+    <div id="bulk-import-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
+        <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                <div>
+                    <h3 class="text-lg font-bold dark:text-white"><i class="fa-solid fa-file-arrow-up text-indigo-500 mr-2"></i>นำเข้าผู้ใช้จำนวนมาก (Bulk Import)</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">อัปโหลดไฟล์ CSV หรือวางข้อมูลเพื่อสร้างบัญชีผู้ใช้พร้อมกันหลายคน</p>
+                </div>
+                <button onclick="closeBulkImportModal()" class="text-slate-400 hover:text-red-500 text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+
+                <!-- Template download -->
+                <div class="flex items-center justify-between bg-indigo-50 dark:bg-slate-800 rounded-xl px-4 py-3">
+                    <div>
+                        <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">ดาวน์โหลด Template CSV</p>
+                        <p class="text-xs text-slate-500">รูปแบบ: firstName, lastName, username, password, email, role, classroom, parentUsername, parentPassword</p>
+                    </div>
+                    <button onclick="downloadTemplate()" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition flex-shrink-0 ml-3">
+                        <i class="fa-solid fa-download mr-1"></i>Template
+                    </button>
+                </div>
+
+                <!-- Upload zone -->
+                <div id="bulk-drop-zone" ondragover="event.preventDefault();this.classList.add('border-indigo-500','bg-indigo-50')"
+                     ondragleave="this.classList.remove('border-indigo-500','bg-indigo-50')"
+                     ondrop="handleBulkDrop(event)"
+                     class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-8 text-center cursor-pointer hover:border-indigo-400 transition"
+                     onclick="document.getElementById('bulk-file-input').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 mb-2"></i>
+                    <p class="text-sm font-semibold text-slate-500">คลิกหรือลากไฟล์ CSV มาวางที่นี่</p>
+                    <p class="text-xs text-slate-400 mt-1">รองรับ .csv เท่านั้น</p>
+                    <input id="bulk-file-input" type="file" accept=".csv" class="hidden" onchange="handleBulkFile(this)">
+                </div>
+
+                <!-- OR paste text -->
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">หรือวางข้อมูล CSV โดยตรง</label>
+                    <textarea id="bulk-csv-text" rows="6" placeholder="firstName,lastName,username,password,email,role,classroom&#10;สมหญิง,ดีมาก,somying,pass123,somying@school.ac.th,Student,ม.2/1&#10;สมศรี,รักเรียน,somsri,pass123,somsri@school.ac.th,Teacher,วิทย์-คณิต"
+                        class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                </div>
+
+                <button onclick="parseBulkCSV()" class="w-full py-2 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 text-slate-700 dark:text-slate-200 text-sm font-semibold rounded-lg transition">
+                    <i class="fa-solid fa-table mr-1"></i>ตรวจสอบข้อมูล (Preview)
+                </button>
+
+                <!-- Preview table -->
+                <div id="bulk-preview-wrap" class="hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-sm font-bold dark:text-white">ตัวอย่างข้อมูลที่จะนำเข้า (<span id="bulk-count">0</span> คน)</p>
+                        <div class="flex gap-2 text-xs">
+                            <span id="bulk-ok-count" class="px-2 py-0.5 bg-green-100 text-green-700 rounded font-semibold"></span>
+                            <span id="bulk-err-count" class="px-2 py-0.5 bg-red-100 text-red-700 rounded font-semibold hidden"></span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 max-h-56 overflow-y-auto">
+                        <table class="w-full text-xs">
+                            <thead class="bg-slate-50 dark:bg-slate-800 sticky top-0">
+                                <tr>
+                                    <th class="p-2 text-left">#</th>
+                                    <th class="p-2 text-left">ชื่อ-นามสกุล</th>
+                                    <th class="p-2 text-left">Username</th>
+                                    <th class="p-2 text-left">Email</th>
+                                    <th class="p-2 text-left">Role</th>
+                                    <th class="p-2 text-left">ห้อง</th>
+                                    <th class="p-2 text-left">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulk-preview-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div id="bulk-progress-wrap" class="hidden space-y-2">
+                    <div class="flex justify-between text-xs text-slate-500">
+                        <span id="bulk-progress-label">กำลังนำเข้า...</span>
+                        <span id="bulk-progress-pct">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                        <div id="bulk-progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <!-- Result summary -->
+                <div id="bulk-result" class="hidden p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                    <p id="bulk-result-msg" class="text-sm font-bold text-green-700 dark:text-green-300"></p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <button onclick="closeBulkImportModal()" class="px-4 py-2 text-sm text-slate-500 hover:text-slate-700">ยกเลิก</button>
+                <button id="bulk-import-btn" onclick="startBulkImport()" class="px-6 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition disabled:opacity-50" disabled>
+                    <i class="fa-solid fa-users mr-1"></i>นำเข้าทั้งหมด
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ADD/EDIT GOOGLE FORM MODAL -->
     <div id="form-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
         <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4">
@@ -959,7 +1152,7 @@
                         <input type="checkbox" checked class="rounded border-white border-opacity-40 bg-transparent accent-indigo-600">
                         <span>จดจำการใช้งาน</span>
                     </label>
-                    <a href="#" onclick="alert('กรุณาติดต่อแผนกไอทีส่วนกลางของโรงเรียนเพื่อทำการเปลี่ยนรหัสผ่านผู้ใช้งาน!')" class="hover:underline font-semibold">ลืมรหัสผ่าน?</a>
+                    <a href="#" onclick="openForgotModal()" class="hover:underline font-semibold">ลืมรหัสผ่าน?</a>
                 </div>
 
                 <button type="submit" class="w-full py-4 bg-white text-indigo-800 font-extrabold rounded-xl shadow-lg hover:bg-slate-50 transition transform hover:-translate-y-0.5">เข้าสู่ระบบการสอน</button>
@@ -1055,16 +1248,37 @@
                 <h3 class="text-xl font-bold">อัปโหลดสื่อการเรียนรู้</h3>
                 <button onclick="closeUploadMediaModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form class="space-y-4" onsubmit="event.preventDefault(); alert('ระบบจะประมวลผลอัปโหลดไฟล์สื่อการเรียนรู้ลงฐานข้อมูลคลาวด์ (Cloud Sandbox) เรียบร้อย!'); closeUploadMediaModal();">
+            <form class="space-y-3" onsubmit="handleUploadMediaSubmit(event)">
                 <div>
-                    <label class="text-xs font-bold text-slate-400">ชื่อสื่อการเรียนการสอน</label>
-                    <input type="text" required placeholder="ระบุชื่อหัวข้อวิชาเรียน" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800">
+                    <label class="text-xs font-bold text-slate-400">ชื่อสื่อการเรียนการสอน <span class="text-red-500">*</span></label>
+                    <input id="mm-title" type="text" required placeholder="เช่น ใบงานวิทยาการคำนวณ ม.2" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                 </div>
                 <div>
-                    <label class="text-xs font-bold text-slate-400">เลือกไฟล์ในเครื่องคอมพิวเตอร์ของคุณ</label>
-                    <input type="file" required class="w-full mt-1 p-2 border rounded-xl text-xs dark:bg-slate-800">
+                    <label class="text-xs font-bold text-slate-400">ลิงก์ไฟล์ (Google Drive / YouTube) <span class="text-red-500">*</span></label>
+                    <input id="mm-url" type="url" required placeholder="https://drive.google.com/... หรือ https://youtube.com/..." class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                 </div>
-                <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl">เริ่มทำการอัปโหลดสื่อ</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400">กลุ่มสาระ</label>
+                        <input id="mm-subject" type="text" placeholder="เช่น วิทยาศาสตร์" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400">ประเภทไฟล์</label>
+                        <select id="mm-type" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                            <option value="pdf">PDF</option>
+                            <option value="word">Word</option>
+                            <option value="pptx">PowerPoint</option>
+                            <option value="video">วิดีโอ / YouTube</option>
+                            <option value="image">รูปภาพ</option>
+                            <option value="other">อื่นๆ</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400">ขนาดไฟล์ (MB) — ไม่บังคับ</label>
+                    <input id="mm-size" type="number" step="0.1" placeholder="เช่น 4.2" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                </div>
+                <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-opacity-90 transition"><i class="fa-solid fa-cloud-arrow-up mr-2"></i>เพิ่มสื่อเข้าคลัง</button>
             </form>
         </div>
     </div>
@@ -1227,7 +1441,7 @@
         // ══════════════════════════════════════════════════════
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
         // ══════════════════════════════════════════════════════
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx05P2bkPNYaGa8WLiOzyrO4mrgmOOpxJ4KEicYwYDF1Rube0vANUxphphH7f4m-MHJ/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        const GAS_URL = ''; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
         // ══ API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
@@ -1703,6 +1917,7 @@
 
             try { initCharts(); } catch(e) { console.error('initCharts error:', e); }
             try { renderUsersTable(); } catch(e) { console.error('renderUsersTable error:', e); }
+            try { initAssignmentsView(); } catch(e) { console.error('initAssignmentsView error:', e); }
         }
 
         function handleLogout() {
@@ -1790,6 +2005,9 @@
                 if (sectionId === 'section-question-bank') {
                     loadFormsFromGAS();
                 }
+                if (sectionId === 'section-assignments') {
+                    initAssignmentsView();
+                }
             }
 
             // Update active state class in sidebar
@@ -1876,6 +2094,266 @@
 
         // Modal triggers
 
+
+
+
+        // ════════════════════════════════════════════════════
+        //  ANNOUNCEMENT SYSTEM
+        // ════════════════════════════════════════════════════
+        let announcementsLog = JSON.parse(localStorage.getItem('announcements') || '[]');
+
+        function openAnnouncementModal() { document.getElementById('announcement-modal').classList.remove('hidden'); }
+        function closeAnnouncementModal() { document.getElementById('announcement-modal').classList.add('hidden'); }
+
+        function submitAnnouncement() {
+            const title  = document.getElementById('ann-title').value.trim();
+            const body   = document.getElementById('ann-body').value.trim();
+            const target = document.getElementById('ann-target').value;
+            const type   = document.getElementById('ann-type').value;
+            if (!title || !body) { alert('กรุณากรอกหัวข้อและรายละเอียด'); return; }
+
+            const ann = { id: 'ANN-'+Date.now(), title, body, target, type, createdAt: new Date().toLocaleString('th-TH'), author: 'natee' };
+            announcementsLog.unshift(ann);
+            localStorage.setItem('announcements', JSON.stringify(announcementsLog));
+
+            // Show notification badge
+            const badge = document.getElementById('notification-badge');
+            if (badge) badge.textContent = announcementsLog.length;
+
+            // Flash success in button area
+            closeAnnouncementModal();
+            document.getElementById('ann-title').value = '';
+            document.getElementById('ann-body').value = '';
+
+            // Show toast
+            showToast('✅ ส่งประกาศสำเร็จ — ' + title, 'success');
+        }
+
+        // ════════════════════════════════════════════════════
+        //  FORGOT PASSWORD
+        // ════════════════════════════════════════════════════
+        function openForgotModal()  { document.getElementById('forgot-modal').classList.remove('hidden'); document.getElementById('forgot-result').classList.add('hidden'); }
+        function closeForgotModal() { document.getElementById('forgot-modal').classList.add('hidden'); }
+
+        function lookupForgotUser() {
+            const uname = document.getElementById('forgot-username').value.trim();
+            const result = document.getElementById('forgot-result');
+            if (!uname) { alert('กรุณากรอก Username'); return; }
+
+            const found = usersData.find(u => u.username === uname);
+            result.classList.remove('hidden');
+            if (found) {
+                result.className = 'p-3 rounded-lg text-sm bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700';
+                result.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i>พบบัญชี: <strong>${found.firstName} ${found.lastName}</strong><br>
+                <span class="text-xs opacity-80">กรุณาติดต่อ Admin (${usersData.find(u=>u.role==='Admin')?.email || 'admin@school.ac.th'}) เพื่อรีเซ็ตรหัสผ่าน</span>`;
+            } else {
+                result.className = 'p-3 rounded-lg text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-700';
+                result.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1"></i>ไม่พบบัญชีผู้ใช้นี้ในระบบ';
+            }
+        }
+
+        // ════════════════════════════════════════════════════
+        //  PERMISSIONS SAVE
+        // ════════════════════════════════════════════════════
+        function savePermissions() {
+            showToast('✅ บันทึกตารางสิทธิ์การใช้งานสำเร็จแล้ว', 'success');
+        }
+
+        // ════════════════════════════════════════════════════
+        //  UPLOAD MEDIA (local registry + Google Drive link)
+        // ════════════════════════════════════════════════════
+        let localMediaRegistry = JSON.parse(localStorage.getItem('local_media') || '[]');
+
+        function handleUploadMediaSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const title   = document.getElementById('mm-title')?.value.trim();
+            const url     = document.getElementById('mm-url')?.value.trim();
+            const subject = document.getElementById('mm-subject')?.value.trim() || '-';
+            const mtype   = document.getElementById('mm-type')?.value || 'other';
+            const size    = document.getElementById('mm-size')?.value.trim() || '';
+
+            if (!title || !url) { alert('กรุณากรอกชื่อและลิงก์ไฟล์'); return; }
+
+            const mimeMap2 = { pdf:'application/pdf', word:'application/vnd.openxmlformats-officedocument.wordprocessingml.document', pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation', video:'video/mp4', image:'image/jpeg', other:'application/octet-stream' };
+
+            const entry = {
+                id: 'MED-'+Date.now(),
+                name: title, mimeType: mimeMap2[mtype] || mimeMap2.other,
+                size: size ? parseInt(size)*1024*1024 : 0,
+                modifiedTime: new Date().toISOString(),
+                subject, viewUrl: url, downloadUrl: url, isLocal: true
+            };
+            localMediaRegistry.unshift(entry);
+            localStorage.setItem('local_media', JSON.stringify(localMediaRegistry));
+
+            // Merge into allDriveFiles and re-render
+            allDriveFiles = [...localMediaRegistry, ...allDriveFiles.filter(f => !f.isLocal)];
+            filterMedia(currentFilter || 'all');
+
+            closeUploadMediaModal();
+            showToast('✅ เพิ่มสื่อ "' + title + '" สำเร็จแล้ว', 'success');
+        }
+
+        // ════════════════════════════════════════════════════
+        //  TOAST NOTIFICATION
+        // ════════════════════════════════════════════════════
+        function showToast(msg, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-indigo-600', warning: 'bg-amber-500' };
+            toast.className = `${colors[type]||colors.info} text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all`;
+            toast.style.cssText = 'opacity:0;transform:translateX(40px);';
+            toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="ml-2 opacity-60 hover:opacity-100">✕</button>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
+        // Merge local media into allDriveFiles when media section loads
+        const _origLoadMedia = loadMediaFiles;
+        loadMediaFiles = async function() {
+            await _origLoadMedia();
+            if (localMediaRegistry.length > 0) {
+                allDriveFiles = [...localMediaRegistry, ...allDriveFiles.filter(f => !f.isLocal)];
+                renderDriveCards();
+            }
+        };
+        // ════ END COMPLETION ════
+
+        // ════════════════════════════════════════════════════
+        //  ASSIGNMENTS TRACKER
+        // ════════════════════════════════════════════════════
+        let assignmentsData = JSON.parse(localStorage.getItem('assignments_data') || '[]');
+        if (assignmentsData.length === 0) {
+            assignmentsData = [
+                { id: 'ASN-001', title: 'แบบฝึกหัด Scratch (ม.2)', desc: 'ทำแบบฝึกหัดบทที่ 3 Scratch เบื้องต้น', subject: 'วิทยาการคำนวณ', classroom: 'ม.2/1', dueDate: '2026-06-05', maxScore: 20, status: 'graded', score: 18, createdAt: '2026-05-28', teacher: 'natee' },
+                { id: 'ASN-002', title: 'ใบสรุปความคิดรวบยอด Abstraction', desc: 'เขียนสรุปแนวคิด Abstraction 1 หน้ากระดาษ', subject: 'วิทยาการคำนวณ', classroom: 'ม.2/1', dueDate: '2026-06-02', maxScore: 10, status: 'pending', score: null, createdAt: '2026-05-30', teacher: 'natee' },
+                { id: 'ASN-003', title: 'โครงงาน Engineering Design ม.2', desc: 'ออกแบบและสร้างชิ้นงานจำลองตามกระบวนการ EDP', subject: 'เทคโนโลยี', classroom: 'ม.2/1', dueDate: '2026-06-15', maxScore: 30, status: 'pending', score: null, createdAt: '2026-06-01', teacher: 'natee' },
+            ];
+            saveAssignments();
+        }
+
+        function saveAssignments() { localStorage.setItem('assignments_data', JSON.stringify(assignmentsData)); }
+
+        const assignStatusCfg = {
+            pending  : { label: 'รอส่งงาน',  bg: 'bg-amber-100',  text: 'text-amber-800',  icon: 'fa-clock' },
+            submitted: { label: 'ส่งแล้ว',    bg: 'bg-blue-100',   text: 'text-blue-800',   icon: 'fa-paper-plane' },
+            graded   : { label: 'ตรวจแล้ว',   bg: 'bg-green-100',  text: 'text-green-800',  icon: 'fa-check-circle' },
+            late     : { label: 'เกินกำหนด',  bg: 'bg-red-100',    text: 'text-red-800',    icon: 'fa-triangle-exclamation' },
+        };
+
+        function getAssignStatus(a) {
+            if (a.status === 'graded') return 'graded';
+            if (a.status === 'submitted') return 'submitted';
+            if (new Date(a.dueDate) < new Date() && a.status === 'pending') return 'late';
+            return 'pending';
+        }
+
+        function renderAssignments() {
+            const list  = document.getElementById('assign-list');
+            const empty = document.getElementById('assign-empty');
+            if (!list) return;
+            const filter = document.getElementById('assign-filter-status')?.value || 'all';
+            const filtered = assignmentsData.filter(a => filter === 'all' || getAssignStatus(a) === filter);
+            if (filtered.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'flex'; empty.classList.remove('hidden');
+                return;
+            }
+            empty.style.display = 'none'; empty.classList.add('hidden');
+            list.innerHTML = filtered.map(a => {
+                const st  = getAssignStatus(a);
+                const cfg = assignStatusCfg[st] || assignStatusCfg.pending;
+                const due = new Date(a.dueDate);
+                const diffDays = Math.ceil((due - new Date()) / 86400000);
+                const dueText = st === 'graded' ? `ตรวจแล้ว • ${a.score}/${a.maxScore} คะแนน`
+                              : st === 'submitted' ? 'ส่งแล้ว รอตรวจ'
+                              : st === 'late' ? 'เกินกำหนดส่ง'
+                              : diffDays <= 0 ? 'ครบกำหนดวันนี้!'
+                              : diffDays === 1 ? 'กำหนดส่งพรุ่งนี้'
+                              : `อีก ${diffDays} วัน`;
+                const dueColor = st === 'graded' ? 'text-green-600' : st === 'late' ? 'text-red-500' : diffDays <= 1 ? 'text-amber-500' : 'text-slate-400';
+                const isTeacher = currentRole === 'teacher' || currentRole === 'admin';
+                return `
+                <div class="flex items-start justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition gap-3">
+                    <div class="flex items-start gap-3 min-w-0">
+                        <div class="p-2 bg-indigo-50 dark:bg-slate-700 rounded-lg flex-shrink-0 mt-0.5">
+                            <i class="fa-solid fa-file-lines text-primary text-sm"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="font-bold text-sm dark:text-white">${a.title}</p>
+                            ${a.desc ? '<p class="text-xs text-slate-400 mt-0.5">' + a.desc + '</p>' : ''}
+                            <div class="flex flex-wrap gap-1.5 mt-1.5 items-center">
+                                ${a.subject ? '<span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-0.5 rounded font-semibold">' + a.subject + '</span>' : ''}
+                                ${a.classroom ? '<span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded">' + a.classroom + '</span>' : ''}
+                                <span class="text-[10px] ${dueColor} font-semibold"><i class="fa-regular fa-calendar mr-0.5"></i>${dueText}</span>
+                                <span class="text-[10px] text-slate-400">เต็ม ${a.maxScore} คะแนน</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="px-2.5 py-1 ${cfg.bg} ${cfg.text} text-[10px] font-bold rounded-full whitespace-nowrap">
+                            <i class="fa-solid ${cfg.icon} mr-0.5"></i>${cfg.label}
+                        </span>
+                        ${isTeacher
+                            ? '<button onclick="deleteAssignment(\''+a.id+'\')"><i class="fa-solid fa-trash text-xs text-slate-300 hover:text-red-400"></i></button>'
+                            : '<button onclick="markAssignSubmitted(\''+a.id+'\')" ' + (st !== 'pending' && st !== 'late' ? 'disabled' : '') + ' class="px-2 py-1 text-[10px] font-bold rounded-lg ' + (st !== 'pending' && st !== 'late' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-primary text-white hover:bg-opacity-90') + '">' + (st === 'submitted' ? 'ส่งแล้ว' : st === 'graded' ? 'ตรวจแล้ว' : 'ส่งงาน') + '</button>'
+                        }
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function submitNewAssignment(event) {
+            event.preventDefault();
+            const newAssign = {
+                id: 'ASN-' + Date.now(),
+                title   : document.getElementById('assign-title').value.trim(),
+                desc    : document.getElementById('assign-desc').value.trim(),
+                subject : document.getElementById('assign-subject').value.trim() || '-',
+                classroom: document.getElementById('assign-class').value.trim() || 'ทุกห้อง',
+                dueDate : document.getElementById('assign-due').value,
+                maxScore: parseInt(document.getElementById('assign-score').value) || 20,
+                status  : 'pending', score: null,
+                createdAt: new Date().toISOString().slice(0,10), teacher: 'natee'
+            };
+            assignmentsData.unshift(newAssign);
+            saveAssignments();
+            renderAssignments();
+            ['assign-title','assign-desc','assign-due','assign-class','assign-subject'].forEach(id => { document.getElementById(id).value = ''; });
+            document.getElementById('assign-score').value = '20';
+            const btn = event.target.querySelector('button[type=submit]');
+            btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>เผยแพร่สำเร็จ!';
+            btn.classList.replace('bg-primary','bg-green-500');
+            setTimeout(() => { btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-1"></i>เผยแพร่งานให้นักเรียนทันที'; btn.classList.replace('bg-green-500','bg-primary'); }, 2000);
+        }
+
+        function deleteAssignment(id) {
+            if (!confirm('ลบงานนี้ออกจากระบบ?')) return;
+            assignmentsData = assignmentsData.filter(a => a.id !== id);
+            saveAssignments(); renderAssignments();
+        }
+
+        function markAssignSubmitted(id) {
+            const idx = assignmentsData.findIndex(a => a.id === id);
+            if (idx === -1) return;
+            assignmentsData[idx].status = 'submitted';
+            saveAssignments(); renderAssignments();
+        }
+
+        function initAssignmentsView() {
+            const panel = document.getElementById('assign-teacher-panel');
+            if (panel) panel.classList.toggle('hidden', currentRole !== 'teacher' && currentRole !== 'admin');
+            renderAssignments();
+        }
+        // ════ END ASSIGNMENTS ════
 
         // ---- Media Library (Google Drive) ----
         const DRIVE_FOLDER_ID = '1fz8_oGmr6e48FbZirSZh44eCubeUYY_j';
@@ -2178,7 +2656,232 @@
 
         // Export simulations
         function exportDashboard() { alert('กำลังสร้างและดาวน์โหลดไฟล์รายงานภาพรวมสถาบัน (PDF) สรุปสารสนเทศโรงเรียน...'); }
-        function exportUserData(format) { alert(`ระบบกำลังประมวลผลการจัดโครงสร้างผู้ใช้แบบ ${format.toUpperCase()} และบันทึกอัตโนมัติ...`); }
+
+        // ════════════════════════════════════════════════════
+        //  BULK IMPORT USERS
+        // ════════════════════════════════════════════════════
+        let bulkParsedUsers = [];
+
+        const BULK_REQUIRED = ['firstName','lastName','username','password','role'];
+        const BULK_ROLES    = ['Admin','Teacher','Student','Parent'];
+
+        function openBulkImportModal() {
+            bulkParsedUsers = [];
+            document.getElementById('bulk-csv-text').value = '';
+            document.getElementById('bulk-preview-wrap').classList.add('hidden');
+            document.getElementById('bulk-progress-wrap').classList.add('hidden');
+            document.getElementById('bulk-result').classList.add('hidden');
+            document.getElementById('bulk-import-btn').disabled = true;
+            document.getElementById('bulk-import-modal').classList.remove('hidden');
+        }
+
+        function closeBulkImportModal() {
+            document.getElementById('bulk-import-modal').classList.add('hidden');
+        }
+
+        function downloadTemplate() {
+            const csv = 'firstName,lastName,username,password,email,role,classroom,parentUsername,parentPassword
+' +
+                        'สมหญิง,ดีมาก,somying,pass123,somying@school.ac.th,Student,ม.2/1,parent_somying,parent123
+' +
+                        'สมศรี,รักเรียน,somsri,pass456,somsri@school.ac.th,Teacher,วิทย์-คณิต,,
+' +
+                        'สมชาย,ขยันดี,somchai,pass789,somchai@school.ac.th,Student,ม.3/2,parent_somchai,parent456
+';
+            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'bulk_import_template.csv';
+            a.click();
+        }
+
+        function handleBulkFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('bulk-csv-text').value = e.target.result.replace(/^﻿/, '');
+                parseBulkCSV();
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function handleBulkDrop(e) {
+            e.preventDefault();
+            document.getElementById('bulk-drop-zone').classList.remove('border-indigo-500','bg-indigo-50');
+            const file = e.dataTransfer.files[0];
+            if (!file || !file.name.endsWith('.csv')) { alert('กรุณาใช้ไฟล์ .csv เท่านั้น'); return; }
+            const reader = new FileReader();
+            reader.onload = ev => {
+                document.getElementById('bulk-csv-text').value = ev.target.result.replace(/^﻿/, '');
+                parseBulkCSV();
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function parseBulkCSV() {
+            const raw = document.getElementById('bulk-csv-text').value.trim();
+            if (!raw) { alert('กรุณาวางข้อมูล CSV ก่อน'); return; }
+
+            const lines = raw.split(/
+?
+/).filter(l => l.trim());
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const rows    = lines.slice(1);
+
+            bulkParsedUsers = [];
+            let errCount = 0;
+
+            rows.forEach((row, idx) => {
+                const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                const user = {};
+                headers.forEach((h, i) => user[h] = cols[i] || '');
+
+                // Validate
+                const errors = [];
+                BULK_REQUIRED.forEach(f => { if (!user[f]) errors.push(`ไม่มี ${f}`); });
+                if (user.role && !BULK_ROLES.includes(user.role)) errors.push(`role ไม่ถูกต้อง`);
+                const dupUsername = usersData.find(u => u.username === user.username);
+                if (dupUsername) errors.push(`username ซ้ำ`);
+
+                user._row    = idx + 2;
+                user._errors = errors;
+                user._valid  = errors.length === 0;
+                if (!user._valid) errCount++;
+                bulkParsedUsers.push(user);
+            });
+
+            // Render preview table
+            const tbody = document.getElementById('bulk-preview-body');
+            tbody.innerHTML = bulkParsedUsers.map((u, i) => `
+                <tr class="${u._valid ? '' : 'bg-red-50 dark:bg-red-900/20'} border-b border-slate-100 dark:border-slate-800">
+                    <td class="p-2 text-slate-400">${u._row}</td>
+                    <td class="p-2 font-semibold dark:text-white">${u.firstName || ''} ${u.lastName || ''}</td>
+                    <td class="p-2 font-mono text-indigo-600 dark:text-indigo-400">${u.username || ''}</td>
+                    <td class="p-2 text-slate-500">${u.email || '-'}</td>
+                    <td class="p-2"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                        u.role==='Admin'?'bg-red-100 text-red-700':
+                        u.role==='Teacher'?'bg-blue-100 text-blue-700':
+                        u.role==='Student'?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'
+                    }">${u.role||'-'}</span></td>
+                    <td class="p-2 text-slate-500">${u.classroom || '-'}</td>
+                    <td class="p-2">${u._valid
+                        ? '<span class="text-green-600 font-semibold">✓ พร้อมนำเข้า</span>'
+                        : `<span class="text-red-500 font-semibold" title="${u._errors.join(', ')}">✗ ${u._errors[0]}</span>`
+                    }</td>
+                </tr>
+            `).join('');
+
+            const validCount = bulkParsedUsers.filter(u => u._valid).length;
+            document.getElementById('bulk-count').textContent = bulkParsedUsers.length;
+            document.getElementById('bulk-ok-count').textContent = `✓ ${validCount} พร้อมนำเข้า`;
+            document.getElementById('bulk-err-count').textContent = `✗ ${errCount} มีข้อผิดพลาด`;
+            if (errCount > 0) document.getElementById('bulk-err-count').classList.remove('hidden');
+            else document.getElementById('bulk-err-count').classList.add('hidden');
+
+            document.getElementById('bulk-preview-wrap').classList.remove('hidden');
+            document.getElementById('bulk-import-btn').disabled = validCount === 0;
+        }
+
+        async function startBulkImport() {
+            const validUsers = bulkParsedUsers.filter(u => u._valid);
+            if (validUsers.length === 0) return;
+
+            const btn = document.getElementById('bulk-import-btn');
+            btn.disabled = true;
+            document.getElementById('bulk-progress-wrap').classList.remove('hidden');
+            document.getElementById('bulk-result').classList.add('hidden');
+
+            let done = 0, failed = 0;
+
+            for (const u of validUsers) {
+                const prefix = u.role === 'Admin' ? 'ADM' : u.role === 'Teacher' ? 'TCH' : 'STD';
+                const newUser = {
+                    id              : `${prefix}-${Date.now().toString().slice(-6)}${Math.floor(Math.random()*10)}`,
+                    username        : u.username,
+                    password        : u.password,
+                    firstName       : u.firstName,
+                    lastName        : u.lastName,
+                    email           : u.email || `${u.username}@school.ac.th`,
+                    role            : u.role,
+                    classroom       : u.classroom || '-',
+                    status          : 'Active',
+                    avatar          : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256',
+                    parentUsername  : u.parentUsername || '',
+                    parentPassword  : u.parentPassword || '',
+                };
+
+                // Save to GAS (if available)
+                const gasResult = await gasCall('addUser', newUser);
+                if (gasResult && gasResult.id) newUser.id = gasResult.id;
+
+                usersData.push(newUser);
+                done++;
+
+                // Update progress
+                const pct = Math.round((done / validUsers.length) * 100);
+                document.getElementById('bulk-progress-bar').style.width = pct + '%';
+                document.getElementById('bulk-progress-pct').textContent = pct + '%';
+                document.getElementById('bulk-progress-label').textContent = `กำลังนำเข้า ${done}/${validUsers.length}...`;
+
+                // Small delay to avoid rate limiting
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            // Done
+            btn.disabled = false;
+            const resultEl = document.getElementById('bulk-result');
+            const resultMsg = document.getElementById('bulk-result-msg');
+            resultEl.classList.remove('hidden');
+            resultMsg.textContent = `✅ นำเข้าสำเร็จ ${done} คน${failed > 0 ? ` (ล้มเหลว ${failed} คน)` : ''} — ข้อมูลถูกบันทึกแล้ว`;
+
+            filterUsers();
+            setTimeout(() => closeBulkImportModal(), 2500);
+        }
+        // ════════════════════════════════════════════════════
+
+        function exportUserData(format) {
+            const rows = [['รหัส','ชื่อ','นามสกุล','Username','Email','บทบาท','ห้องเรียน','สถานะ']];
+            usersData.forEach(u => rows.push([u.id, u.firstName, u.lastName, u.username, u.email, u.role, u.classroom, u.status]));
+
+            if (format === 'csv') {
+                const bom = '﻿';
+                const csv = bom + rows.map(r => r.map(c => `"${(c||'').toString().replace(/"/g,'""')}"`).join(',')).join('
+');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = `users_export_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+
+            } else if (format === 'pdf') {
+                const win = window.open('', '_blank');
+                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+                <title>รายชื่อผู้ใช้งาน Smart School</title>
+                <style>
+                  body{font-family:'Sarabun',sans-serif;padding:20px;font-size:13px}
+                  h2{color:#4F46E5;margin-bottom:4px}p.sub{color:#888;margin-bottom:16px;font-size:11px}
+                  table{width:100%;border-collapse:collapse}
+                  th{background:#4F46E5;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
+                  td{padding:7px 10px;border-bottom:1px solid #eee;font-size:12px}
+                  tr:nth-child(even){background:#f8f8ff}
+                  .badge{padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}
+                  .active{background:#d1fae5;color:#065f46}.inactive{background:#fee2e2;color:#991b1b}
+                  @media print{button{display:none}}
+                </style></head><body>
+                <h2>📋 รายชื่อผู้ใช้งาน Smart School</h2>
+                <p class="sub">ส่งออกเมื่อ: ${new Date().toLocaleString('th-TH')} — จำนวน ${usersData.length} คน</p>
+                <table><thead><tr>${['รหัส','ชื่อ-นามสกุล','Username','Email','บทบาท','ห้อง','สถานะ'].map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
+                ${usersData.map(u=>`<tr>
+                  <td>${u.id}</td><td><strong>${u.firstName} ${u.lastName}</strong></td>
+                  <td><code>${u.username}</code></td><td>${u.email||'-'}</td>
+                  <td>${u.role}</td><td>${u.classroom||'-'}</td>
+                  <td><span class="badge ${u.status==='Active'?'active':'inactive'}">${u.status}</span></td>
+                </tr>`).join('')}
+                </tbody></table>
+                <br><button onclick="window.print()" style="padding:8px 16px;background:#4F46E5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">🖨️ พิมพ์ / บันทึก PDF</button>
+                </body></html>`);
+                win.document.close();
+            }
+        }
 
         // EXAM ANTI-CHEAT SECURITY INTERACTION
         // Detect user switching tabs or window blur
