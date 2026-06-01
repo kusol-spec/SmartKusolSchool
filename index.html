@@ -696,12 +696,11 @@
                 <!-- Error -->
                 <div id="media-error" class="hidden flex flex-col items-center justify-center py-16 text-slate-400">
                     <i class="fa-solid fa-triangle-exclamation text-3xl mb-3 text-amber-400"></i>
-                    <p id="media-error-msg" class="text-sm mb-3">ไม่สามารถโหลดไฟล์ได้</p>
-                    <p class="text-xs text-slate-400 mb-3">กรุณาตรวจสอบว่า Folder ถูกตั้งค่าเป็น "ทุกคนที่มีลิงก์"</p>
-                    <a href="https://drive.google.com/drive/folders/1fz8_oGmr6e48FbZirSZh44eCubeUYY_j" target="_blank"
-                       class="px-4 py-2 bg-primary text-white text-xs rounded-lg font-semibold">
-                        <i class="fa-brands fa-google-drive mr-1"></i> เปิด Google Drive โดยตรง
-                    </a>
+                    <p id="media-error-msg" class="text-sm font-semibold mb-1">ไม่สามารถโหลดไฟล์ได้</p>
+                    <div id="media-error-detail" class="text-center max-w-sm"></div>
+                    <button onclick="loadMediaFiles()" class="mt-4 px-4 py-2 bg-primary text-white text-xs rounded-lg font-semibold">
+                        <i class="fa-solid fa-rotate-right mr-1"></i>ลองใหม่
+                    </button>
                 </div>
 
                 <!-- Cards Grid -->
@@ -1228,7 +1227,7 @@
         // ══════════════════════════════════════════════════════
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
         // ══════════════════════════════════════════════════════
-        const GAS_URL = ''; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx05P2bkPNYaGa8WLiOzyrO4mrgmOOpxJ4KEicYwYDF1Rube0vANUxphphH7f4m-MHJ/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
         // ══ API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
@@ -1989,13 +1988,29 @@
             const loading = document.getElementById('media-loading');
             const errBox  = document.getElementById('media-error');
             const errMsg  = document.getElementById('media-error-msg');
+            const errDetail = document.getElementById('media-error-detail');
             const grid    = document.getElementById('media-grid');
 
             loading.classList.remove('hidden');
             errBox.classList.add('hidden');
             grid.classList.add('hidden');
 
-            // ── Try GAS (DriveApp) first — most reliable ──
+            // ── ถ้ายังไม่ได้ตั้ง GAS_URL ── แสดงคำแนะนำแทน error
+            if (!GAS_URL) {
+                loading.classList.add('hidden');
+                errBox.classList.remove('hidden');
+                errMsg.textContent = 'ยังไม่ได้เชื่อมต่อ Google Apps Script';
+                if (errDetail) errDetail.innerHTML = `
+                    <p class="text-xs text-slate-400 mt-1">ต้องตั้งค่า <code class="bg-slate-700 px-1 rounded">GAS_URL</code> ใน index.html ก่อน</p>
+                    <ol class="text-xs text-slate-400 mt-2 space-y-1 text-left list-decimal list-inside">
+                        <li>Deploy <strong>Code.gs</strong> เป็น Web App (Execute as: Me, Access: Anyone)</li>
+                        <li>Copy URL → ใส่ใน <code class="bg-slate-700 px-1 rounded">const GAS_URL = '...'</code></li>
+                        <li>อัปโหลด index.html ใหม่ขึ้น GitHub</li>
+                    </ol>`;
+                return;
+            }
+
+            // ── ดึงจาก GAS (DriveApp) ──────────────────────
             const gasResult = await gasCall('getMedia');
             if (gasResult && gasResult.ok && gasResult.files) {
                 allDriveFiles = gasResult.files;
@@ -2004,22 +2019,13 @@
                 return;
             }
 
-            // ── Fallback: Google Drive API v3 (requires folder to be public) ──
-            try {
-                const url = `https://www.googleapis.com/drive/v3/files?q='${DRIVE_FOLDER_ID}'+in+parents+and+trashed=false&fields=files(id,name,mimeType,size,modifiedTime)&pageSize=50`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const data = await res.json();
-                if (data.error) throw new Error(data.error.message);
-                allDriveFiles = (data.files || []).filter(f => f.mimeType !== 'application/vnd.google-apps.folder');
-                if (allDriveFiles.length === 0) throw new Error('ไม่พบไฟล์ หรือ Folder ยังไม่ได้แชร์เป็นสาธารณะ');
-                loading.classList.add('hidden');
-                filterMedia('all');
-            } catch (err) {
-                loading.classList.add('hidden');
-                errBox.classList.remove('hidden');
-                errMsg.textContent = (gasResult ? gasResult.error + ' | ' : '') + (err.message || 'โหลดไฟล์ไม่สำเร็จ');
-            }
+            // ── GAS ตอบกลับแต่ error ──────────────────────
+            loading.classList.add('hidden');
+            errBox.classList.remove('hidden');
+            const errText = gasResult ? gasResult.error : 'GAS ไม่ตอบสนอง';
+            errMsg.textContent = errText || 'โหลดไฟล์ไม่สำเร็จ';
+            if (errDetail) errDetail.innerHTML = `
+                <p class="text-xs text-slate-400 mt-1">ตรวจสอบ: Google Drive Folder ถูกแชร์ให้ Service Account หรือ "Anyone with link" หรือยัง</p>`;
         }
 
         function renderMediaGrid() { renderDriveCards(); }
