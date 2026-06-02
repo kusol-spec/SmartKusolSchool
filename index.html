@@ -751,14 +751,34 @@
                                 class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                         </div>
                         <div>
-                            <label class="text-xs font-bold uppercase text-slate-400">ระดับชั้น</label>
-                            <input id="assign-class" type="text" placeholder="ม.2/1 หรือทุกห้อง"
-                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                            <label class="text-xs font-bold uppercase text-slate-400">ระดับชั้น / ห้องเรียน</label>
+                            <select id="assign-class" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm dark:text-white">
+                                <option value="ทุกห้อง">ทุกห้อง</option>
+                                <option value="ม.1/1">ม.1/1</option>
+                                <option value="ม.1/2">ม.1/2</option>
+                                <option value="ม.2/1">ม.2/1</option>
+                                <option value="ม.2/2">ม.2/2</option>
+                                <option value="ม.3/1">ม.3/1</option>
+                                <option value="ม.3/2">ม.3/2</option>
+                                <option value="ม.4/1">ม.4/1</option>
+                                <option value="ม.5/1">ม.5/1</option>
+                                <option value="ม.6/1">ม.6/1</option>
+                            </select>
                         </div>
                         <div>
                             <label class="text-xs font-bold uppercase text-slate-400">วิชา</label>
-                            <input id="assign-subject" type="text" placeholder="วิทยาการคำนวณ"
-                                class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                            <select id="assign-subject" class="w-full mt-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm dark:text-white">
+                                <option value="วิทยาการคำนวณ">วิทยาการคำนวณ</option>
+                                <option value="เทคโนโลยี">เทคโนโลยี</option>
+                                <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+                                <option value="วิทยาศาสตร์">วิทยาศาสตร์</option>
+                                <option value="ภาษาไทย">ภาษาไทย</option>
+                                <option value="ภาษาอังกฤษ">ภาษาอังกฤษ</option>
+                                <option value="สังคมศึกษา">สังคมศึกษา</option>
+                                <option value="ศิลปะ">ศิลปะ</option>
+                                <option value="พลศึกษา">พลศึกษา</option>
+                                <option value="การงานอาชีพ">การงานอาชีพ</option>
+                            </select>
                         </div>
                         <div class="sm:col-span-2">
                             <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-opacity-95 transition">
@@ -857,8 +877,24 @@
                                 <!-- Generated Dynamically -->
                             </div>
 
+                            <!-- Progress dots -->
+                            <div id="exam-progress-dots" class="flex flex-wrap gap-1.5 pt-2"></div>
+
                             <div class="flex justify-between items-center pt-4 border-t dark:border-slate-700">
-                                <button onclick="nextExamQuestion()" class="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-opacity-95 ml-auto">ข้อต่อไป <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                                <button onclick="prevExamQuestion()" id="exam-prev-btn"
+                                    class="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-lg hover:bg-slate-200 transition hidden">
+                                    <i class="fa-solid fa-arrow-left mr-1"></i>ย้อนกลับ
+                                </button>
+                                <div class="ml-auto flex gap-2">
+                                    <button onclick="finishExam()" id="exam-submit-btn"
+                                        class="px-5 py-2.5 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition hidden">
+                                        <i class="fa-solid fa-flag-checkered mr-1"></i>ส่งข้อสอบ
+                                    </button>
+                                    <button onclick="nextExamQuestion()" id="exam-next-btn"
+                                        class="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-opacity-95 transition">
+                                        ข้อต่อไป <i class="fa-solid fa-arrow-right ml-1"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -965,6 +1001,108 @@
             <div class="flex justify-end gap-3">
                 <button onclick="closeForgotModal()" class="px-4 py-2 text-sm text-slate-500">ยกเลิก</button>
                 <button onclick="lookupForgotUser()" class="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-opacity-90"><i class="fa-solid fa-magnifying-glass mr-1"></i>ค้นหาบัญชี</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- SUBMIT WORK MODAL (ภาพ 1) -->
+    <div id="submit-work-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
+        <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold dark:text-white"><i class="fa-solid fa-paper-plane text-indigo-500 mr-2"></i>ส่งงาน</h3>
+                <button onclick="closeSubmitWorkModal()" class="text-slate-400 hover:text-red-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <input type="hidden" id="submit-work-assign-id">
+            <div class="p-3 bg-indigo-50 dark:bg-slate-800 rounded-xl">
+                <p class="text-sm font-bold text-indigo-700 dark:text-indigo-300" id="submit-work-title"></p>
+            </div>
+            <!-- File upload zone -->
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase">แนบไฟล์งาน</label>
+                <div class="mt-1 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-5 text-center cursor-pointer hover:border-indigo-400 transition"
+                     onclick="document.getElementById('submit-work-file-input').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-300 mb-1"></i>
+                    <p class="text-xs text-slate-400">คลิกเพื่อเลือกไฟล์ (PDF, Word, รูปภาพ)</p>
+                    <p id="submit-work-file-name" class="text-xs text-indigo-500 font-semibold mt-1"></p>
+                    <input id="submit-work-file-input" type="file" accept=".pdf,.doc,.docx,.pptx,.jpg,.jpeg,.png,.zip" class="hidden" onchange="handleSubmitWorkFile(this)">
+                </div>
+            </div>
+            <!-- OR link -->
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase">หรือวางลิงก์งาน (Google Drive / Docs)</label>
+                <input id="submit-work-link" type="url" placeholder="https://drive.google.com/..."
+                    class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+            </div>
+            <!-- Note -->
+            <div>
+                <label class="text-xs font-bold text-slate-500 uppercase">หมายเหตุ (ไม่บังคับ)</label>
+                <textarea id="submit-work-note" rows="2" placeholder="บอกครูเพิ่มเติมได้ที่นี่..."
+                    class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-1">
+                <button onclick="closeSubmitWorkModal()" class="px-4 py-2 text-sm text-slate-500">ยกเลิก</button>
+                <button onclick="confirmSubmitWork()" class="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-opacity-90 transition">
+                    <i class="fa-solid fa-paper-plane mr-1"></i>ยืนยันส่งงาน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ATTENDANCE MODAL (ภาพ 3) -->
+    <div id="attendance-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
+        <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+                <div>
+                    <h3 class="text-lg font-bold dark:text-white"><i class="fa-solid fa-clipboard-user text-emerald-500 mr-2"></i>เช็คชื่อนักเรียน</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">เลือกชั้นเรียนและวิชา จากนั้นทำเครื่องหมายแต่ละคน</p>
+                </div>
+                <button onclick="closeAttendanceModal()" class="text-slate-400 hover:text-red-500 text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-6 py-4 space-y-3 border-b border-slate-100 dark:border-slate-700">
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">ชั้นเรียน</label>
+                        <select id="att-classroom" onchange="loadAttendanceStudents()" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="ม.2/1">ม.2/1</option>
+                            <option value="ม.2/2">ม.2/2</option>
+                            <option value="ม.1/1">ม.1/1</option>
+                            <option value="ม.3/1">ม.3/1</option>
+                            <option value="ม.3/2">ม.3/2</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">วิชา</label>
+                        <select id="att-subject" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option>วิทยาการคำนวณ</option>
+                            <option>เทคโนโลยี</option>
+                            <option>คณิตศาสตร์</option>
+                            <option>วิทยาศาสตร์</option>
+                            <option>ภาษาไทย</option>
+                            <option>ภาษาอังกฤษ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">วันที่</label>
+                        <input id="att-date" type="date" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+                <!-- Quick actions -->
+                <div class="flex gap-2 flex-wrap">
+                    <button onclick="markAllAttendance('present')" class="px-3 py-1.5 bg-green-100 text-green-700 text-xs font-bold rounded-lg hover:bg-green-200 transition"><i class="fa-solid fa-check-double mr-1"></i>เข้าทั้งหมด</button>
+                    <button onclick="markAllAttendance('absent')" class="px-3 py-1.5 bg-red-100 text-red-700 text-xs font-bold rounded-lg hover:bg-red-200 transition"><i class="fa-solid fa-xmark mr-1"></i>ขาดทั้งหมด</button>
+                    <span id="att-summary" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-lg"></span>
+                </div>
+            </div>
+            <!-- Student list -->
+            <div class="flex-1 overflow-y-auto px-6 py-3">
+                <div id="att-student-list" class="space-y-1"></div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <button onclick="closeAttendanceModal()" class="text-sm text-slate-500 px-4 py-2">ยกเลิก</button>
+                <button onclick="saveAttendance()" class="px-6 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 transition">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i>บันทึกการเช็คชื่อ
+                </button>
             </div>
         </div>
     </div>
@@ -1438,12 +1576,12 @@
     <!-- JAVASCRIPT LOGIC CONTROLLERS -->
     <script>
         // In-Memory Database Simulation
-        // ══════════════════════════════════════════════════════
+        // ====================
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
-        // ══════════════════════════════════════════════════════
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx05P2bkPNYaGa8WLiOzyrO4mrgmOOpxJ4KEicYwYDF1Rube0vANUxphphH7f4m-MHJ/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        // ====================
+        const GAS_URL = ''; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
-        // ══ API Helper ════════════════════════════════════════
+        // ==================== API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
             if (!GAS_URL) {
                 console.warn('GAS_URL ยังไม่ได้ตั้งค่า — ใช้ข้อมูล local แทน');
@@ -1462,7 +1600,7 @@
             }
         }
 
-        // ══ Loading overlay ═══════════════════════════════════
+        // ==================== Loading overlay ═══════════════════════════════════
         function showLoading(msg = 'กำลังโหลด...') {
             let el = document.getElementById('gas-loading');
             if (!el) {
@@ -1656,7 +1794,7 @@
                 const currentStatus = usersData[userIndex].status;
                 usersData[userIndex].status = currentStatus === 'Active' ? 'Inactive' : 'Active';
                 gasCall('updateUser', { id: usersData[userIndex].id, status: usersData[userIndex].status });
-                alert(`เปลี่ยนสถานะของ ${usersData[userIndex].firstName} เป็น ${usersData[userIndex].status} เรียบร้อยแล้ว`);
+                showToast(`เปลี่ยนสถานะ ${usersData[userIndex].firstName} → ${usersData[userIndex].status}`, 'info');
                 filterUsers();
             }
         }
@@ -1699,16 +1837,16 @@
                 newUser.parentPassword = document.getElementById('add-parent-password').value || 'parent123';
             }
 
-            // ── Save to GAS ──────────────────────────────────
+            // ==================== Save to GAS ──────────────────────────────────
             (async () => {
                 showLoading('กำลังบันทึกผู้ใช้...');
                 const gasResult = await gasCall('addUser', newUser);
                 hideLoading();
                 if (gasResult && gasResult.ok) {
                     newUser.id = gasResult.id;
-                    alert('สร้างบัญชีผู้ใช้ใหม่สำเร็จ (บันทึกใน Google Sheets)');
+                    showToast('✅ สร้างบัญชีผู้ใช้ใหม่สำเร็จ (บันทึกใน Google Sheets)', 'success');
                 } else {
-                    alert('สร้างบัญชีผู้ใช้ใหม่สำเร็จ (local)');
+                    showToast('✅ สร้างบัญชีผู้ใช้ใหม่สำเร็จ', 'success');
                 }
             })();
             usersData.push(newUser);
@@ -1793,7 +1931,7 @@
                     showLoading('กำลังบันทึก...');
                     const gasResult = await gasCall('updateUser', usersData[userIndex]);
                     hideLoading();
-                    alert(gasResult && gasResult.ok ? 'ปรับปรุงข้อมูลสำเร็จ (Google Sheets)' : 'ปรับปรุงข้อมูลสำเร็จ (local)');
+                    showToast('✅ ปรับปรุงข้อมูลผู้ใช้สำเร็จ', 'success');
                 })();
                 closeEditUserModal();
                 filterUsers();
@@ -1808,12 +1946,12 @@
             const btn      = event.target.querySelector('button[type=submit]');
             if (btn) { btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...'; }
 
-            // ── Try GAS first ──────────────────────────────
+            // ==================== Try GAS first ──────────────────────────────
             const gasResult = await gasCall('login', { username, password: pass });
             if (btn) { btn.disabled = false; btn.textContent = 'เข้าสู่ระบบการสอน'; }
 
             if (gasResult) {
-                if (!gasResult.ok) { alert(gasResult.error); return; }
+                if (!gasResult.ok) { showToast('❌ ' + gasResult.error, 'error'); return; }
                 // Sync usersData from GAS response if available
                 if (gasResult.user) {
                     const exists = usersData.find(u => u.id === gasResult.user.id);
@@ -1828,10 +1966,10 @@
                 return;
             }
 
-            // ── Fallback: local usersData ──────────────────
+            // ==================== Fallback: local usersData ──────────────────
             let matchedUser = usersData.find(u => u.username === username && u.password === pass);
             if (matchedUser) {
-                if (matchedUser.status !== 'Active') { alert('บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ'); return; }
+                if (matchedUser.status !== 'Active') { showToast('❌ บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ', 'error'); return; }
                 if (isFirstLogin && matchedUser.username === 'admin' && matchedUser.password === 'admin123') {
                     document.getElementById('force-password-modal').classList.remove('hidden');
                 } else {
@@ -1844,7 +1982,7 @@
                 enterSystem({ username: linkedStudent.parentUsername, role: 'Parent', firstName: 'ผู้ปกครองของ', lastName: linkedStudent.firstName, avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256', linkedStudent }, 'parent');
                 return;
             }
-            alert('ข้อมูลบัญชีผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง');
+            showToast('❌ Username หรือ Password ไม่ถูกต้อง', 'error');
         }
 
         function handleForcePasswordSubmit(event) {
@@ -1854,7 +1992,7 @@
 
             if (p1 === p2) {
                 if (p1.length >= 6) {
-                    alert('อัปเดตรหัสผ่านใหม่เรียบร้อยแล้ว!');
+                    showToast('✅ อัปเดตรหัสผ่านสำเร็จ', 'success');
                     isFirstLogin = false;
                     // Update admin password in local dynamic state
                     const adminIndex = usersData.findIndex(u => u.username === 'admin');
@@ -1864,10 +2002,10 @@
                     document.getElementById('force-password-modal').classList.add('hidden');
                     if (adminIndex !== -1) enterSystem(usersData[adminIndex], 'admin');
                 } else {
-                    alert('รหัสผ่านจะต้องมีความยาวอย่างน้อย 6 ตัวอักษรขึ้นไป!');
+                    showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร', 'warning');
                 }
             } else {
-                alert('รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน!');
+                showToast('⚠️ รหัสผ่านและการยืนยันไม่ตรงกัน', 'warning');
             }
         }
 
@@ -2097,9 +2235,9 @@
 
 
 
-        // ════════════════════════════════════════════════════
+        // ====================
         //  ANNOUNCEMENT SYSTEM
-        // ════════════════════════════════════════════════════
+        // ====================
         let announcementsLog = JSON.parse(localStorage.getItem('announcements') || '[]');
 
         function openAnnouncementModal() { document.getElementById('announcement-modal').classList.remove('hidden'); }
@@ -2110,7 +2248,7 @@
             const body   = document.getElementById('ann-body').value.trim();
             const target = document.getElementById('ann-target').value;
             const type   = document.getElementById('ann-type').value;
-            if (!title || !body) { alert('กรุณากรอกหัวข้อและรายละเอียด'); return; }
+            if (!title || !body) { showToast('⚠️ กรุณากรอกหัวข้อและรายละเอียด', 'warning'); return; }
 
             const ann = { id: 'ANN-'+Date.now(), title, body, target, type, createdAt: new Date().toLocaleString('th-TH'), author: 'natee' };
             announcementsLog.unshift(ann);
@@ -2129,16 +2267,16 @@
             showToast('✅ ส่งประกาศสำเร็จ — ' + title, 'success');
         }
 
-        // ════════════════════════════════════════════════════
+        // ====================
         //  FORGOT PASSWORD
-        // ════════════════════════════════════════════════════
+        // ====================
         function openForgotModal()  { document.getElementById('forgot-modal').classList.remove('hidden'); document.getElementById('forgot-result').classList.add('hidden'); }
         function closeForgotModal() { document.getElementById('forgot-modal').classList.add('hidden'); }
 
         function lookupForgotUser() {
             const uname = document.getElementById('forgot-username').value.trim();
             const result = document.getElementById('forgot-result');
-            if (!uname) { alert('กรุณากรอก Username'); return; }
+            if (!uname) { showToast('⚠️ กรุณากรอก Username', 'warning'); return; }
 
             const found = usersData.find(u => u.username === uname);
             result.classList.remove('hidden');
@@ -2152,16 +2290,16 @@
             }
         }
 
-        // ════════════════════════════════════════════════════
+        // ====================
         //  PERMISSIONS SAVE
-        // ════════════════════════════════════════════════════
+        // ====================
         function savePermissions() {
             showToast('✅ บันทึกตารางสิทธิ์การใช้งานสำเร็จแล้ว', 'success');
         }
 
-        // ════════════════════════════════════════════════════
+        // ====================
         //  UPLOAD MEDIA (local registry + Google Drive link)
-        // ════════════════════════════════════════════════════
+        // ====================
         let localMediaRegistry = JSON.parse(localStorage.getItem('local_media') || '[]');
 
         function handleUploadMediaSubmit(event) {
@@ -2173,7 +2311,7 @@
             const mtype   = document.getElementById('mm-type')?.value || 'other';
             const size    = document.getElementById('mm-size')?.value.trim() || '';
 
-            if (!title || !url) { alert('กรุณากรอกชื่อและลิงก์ไฟล์'); return; }
+            if (!title || !url) { showToast('⚠️ กรุณากรอกชื่อและลิงก์ไฟล์', 'warning'); return; }
 
             const mimeMap2 = { pdf:'application/pdf', word:'application/vnd.openxmlformats-officedocument.wordprocessingml.document', pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation', video:'video/mp4', image:'image/jpeg', other:'application/octet-stream' };
 
@@ -2195,9 +2333,9 @@
             showToast('✅ เพิ่มสื่อ "' + title + '" สำเร็จแล้ว', 'success');
         }
 
-        // ════════════════════════════════════════════════════
+        // ====================
         //  TOAST NOTIFICATION
-        // ════════════════════════════════════════════════════
+        // ====================
         function showToast(msg, type = 'success') {
             let container = document.getElementById('toast-container');
             if (!container) {
@@ -2225,11 +2363,11 @@
                 renderDriveCards();
             }
         };
-        // ════ END COMPLETION ════
+        // ==================== END COMPLETION ════
 
-        // ════════════════════════════════════════════════════
+        // ====================
         //  ASSIGNMENTS TRACKER
-        // ════════════════════════════════════════════════════
+        // ====================
         let assignmentsData = JSON.parse(localStorage.getItem('assignments_data') || '[]');
         if (assignmentsData.length === 0) {
             assignmentsData = [
@@ -2342,10 +2480,48 @@
         }
 
         function markAssignSubmitted(id) {
+            openSubmitWorkModal(id);
+        }
+
+        function openSubmitWorkModal(assignId) {
+            const assign = assignmentsData.find(a => a.id === assignId);
+            if (!assign) return;
+            document.getElementById('submit-work-modal').classList.remove('hidden');
+            document.getElementById('submit-work-assign-id').value = assignId;
+            document.getElementById('submit-work-title').textContent = assign.title;
+            document.getElementById('submit-work-file-name').textContent = '';
+            document.getElementById('submit-work-note').value = '';
+            document.getElementById('submit-work-file-input').value = '';
+            document.getElementById('submit-work-link').value = '';
+        }
+
+        function closeSubmitWorkModal() {
+            document.getElementById('submit-work-modal').classList.add('hidden');
+        }
+
+        function handleSubmitWorkFile(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('submit-work-file-name').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+            }
+        }
+
+        function confirmSubmitWork() {
+            const id    = document.getElementById('submit-work-assign-id').value;
+            const note  = document.getElementById('submit-work-note').value.trim();
+            const link  = document.getElementById('submit-work-link').value.trim();
+            const file  = document.getElementById('submit-work-file-input').files[0];
+            if (!file && !link) { showToast('⚠️ กรุณาแนบไฟล์หรือวางลิงก์งานก่อนส่ง', 'warning'); return; }
             const idx = assignmentsData.findIndex(a => a.id === id);
             if (idx === -1) return;
             assignmentsData[idx].status = 'submitted';
-            saveAssignments(); renderAssignments();
+            assignmentsData[idx].submittedAt = new Date().toISOString();
+            assignmentsData[idx].submittedNote = note;
+            assignmentsData[idx].submittedLink = link || (file ? file.name : '');
+            saveAssignments();
+            closeSubmitWorkModal();
+            renderAssignments();
+            showToast('✅ ส่งงาน "' + assignmentsData[idx].title + '" สำเร็จแล้ว', 'success');
         }
 
         function initAssignmentsView() {
@@ -2353,7 +2529,7 @@
             if (panel) panel.classList.toggle('hidden', currentRole !== 'teacher' && currentRole !== 'admin');
             renderAssignments();
         }
-        // ════ END ASSIGNMENTS ════
+        // ==================== END ASSIGNMENTS ════
 
         // ---- Media Library (Google Drive) ----
         const DRIVE_FOLDER_ID = '1fz8_oGmr6e48FbZirSZh44eCubeUYY_j';
@@ -2473,7 +2649,7 @@
             errBox.classList.add('hidden');
             grid.classList.add('hidden');
 
-            // ── ถ้ายังไม่ได้ตั้ง GAS_URL ── แสดงคำแนะนำแทน error
+            // ==================== ถ้ายังไม่ได้ตั้ง GAS_URL ── แสดงคำแนะนำแทน error
             if (!GAS_URL) {
                 loading.classList.add('hidden');
                 errBox.classList.remove('hidden');
@@ -2488,7 +2664,7 @@
                 return;
             }
 
-            // ── ดึงจาก GAS (DriveApp) ──────────────────────
+            // ==================== ดึงจาก GAS (DriveApp) ──────────────────────
             const gasResult = await gasCall('getMedia');
             if (gasResult && gasResult.ok && gasResult.files) {
                 allDriveFiles = gasResult.files;
@@ -2497,7 +2673,7 @@
                 return;
             }
 
-            // ── GAS ตอบกลับแต่ error ──────────────────────
+            // ==================== GAS ตอบกลับแต่ error ──────────────────────
             loading.classList.add('hidden');
             errBox.classList.remove('hidden');
             const errText = gasResult ? gasResult.error : 'GAS ไม่ตอบสนอง';
@@ -2600,8 +2776,8 @@
         function saveFormEntry() {
             const title = document.getElementById('fm-title').value.trim();
             const url = document.getElementById('fm-url').value.trim();
-            if (!title || !url) { alert('กรุณากรอกชื่อข้อสอบและลิงก์ Google Forms'); return; }
-            if (!url.includes('google.com/forms') && !url.startsWith('http')) { alert('ลิงก์ไม่ถูกต้อง กรุณาวางลิงก์ Google Forms'); return; }
+            if (!title || !url) { showToast('⚠️ กรุณากรอกชื่อข้อสอบและลิงก์', 'warning'); return; }
+            if (!url.includes('google.com/forms') && !url.startsWith('http')) { showToast('⚠️ ลิงก์ไม่ถูกต้อง กรุณาวางลิงก์ Google Forms', 'warning'); return; }
             const entry = {
                 id: editingFormId || Date.now(),
                 title,
@@ -2650,16 +2826,180 @@
         }
         function closeAddUserModal() { document.getElementById('add-user-modal').classList.add('hidden'); }
 
-        function openCheckAttendanceModal() {
-            alert('การเช็คชื่อผู้เรียนผ่านพอร์ทัลเสร็จสมบูรณ์เรียบร้อย มีผู้เข้าเรียน 98% ขาดเรียน 1 คน');
+        // ====================
+        //  ATTENDANCE SYSTEM (ภาพ 3)
+        // ====================
+        let attendanceRecords = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+        let currentAttendanceMap = {};
+
+        function openCheckAttendanceModal() { openAttendanceModal(); }
+
+        function openAttendanceModal() {
+            const modal = document.getElementById('attendance-modal');
+            if (!modal) return;
+            // Set today's date
+            document.getElementById('att-date').value = new Date().toISOString().slice(0,10);
+            modal.classList.remove('hidden');
+            loadAttendanceStudents();
         }
 
-        // Export simulations
-        function exportDashboard() { alert('กำลังสร้างและดาวน์โหลดไฟล์รายงานภาพรวมสถาบัน (PDF) สรุปสารสนเทศโรงเรียน...'); }
+        function closeAttendanceModal() {
+            document.getElementById('attendance-modal').classList.add('hidden');
+        }
 
-        // ════════════════════════════════════════════════════
+        function loadAttendanceStudents() {
+            const classroom = document.getElementById('att-classroom').value;
+            currentAttendanceMap = {};
+            // Get students in this classroom from usersData
+            const students = usersData.filter(u => u.role === 'Student' && (classroom === 'all' || u.classroom === classroom));
+            // If no students found, add demo students
+            const displayStudents = students.length > 0 ? students : [
+                { id:'DEMO-1', firstName:'สมรักษ์', lastName:'ยอดรัก', classroom: classroom },
+                { id:'DEMO-2', firstName:'สมใจ', lastName:'ดีใจ', classroom: classroom },
+                { id:'DEMO-3', firstName:'สมศรี', lastName:'มีสุข', classroom: classroom },
+                { id:'DEMO-4', firstName:'สมชาย', lastName:'รักเรียน', classroom: classroom },
+                { id:'DEMO-5', firstName:'สมหญิง', lastName:'ขยันดี', classroom: classroom },
+            ];
+
+            displayStudents.forEach(s => { currentAttendanceMap[s.id] = 'present'; });
+
+            const list = document.getElementById('att-student-list');
+            list.innerHTML = displayStudents.map((s, i) => {
+                const avatar = s.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=48';
+                return '<div class="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 last:border-0">' +
+                    '<div class="flex items-center gap-3">' +
+                    '<span class="w-6 h-6 flex items-center justify-center bg-slate-200 dark:bg-slate-700 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300">' + (i+1) + '</span>' +
+                    '<img src="' + avatar + '" class="w-8 h-8 rounded-full object-cover">' +
+                    '<div><p class="text-sm font-semibold dark:text-white">' + s.firstName + ' ' + s.lastName + '</p>' +
+                    '<p class="text-xs text-slate-400">' + (s.id||'') + ' • ' + classroom + '</p></div>' +
+                    '</div>' +
+                    '<div class="flex gap-1" id="att-btns-' + s.id + '">' +
+                    '<button onclick="setAttendance('' + s.id + '','present')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition att-present-active">เข้า</button>' +
+                    '<button onclick="setAttendance('' + s.id + '','late')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition">สาย</button>' +
+                    '<button onclick="setAttendance('' + s.id + '','absent')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">ขาด</button>' +
+                    '<button onclick="setAttendance('' + s.id + '','leave')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">ลา</button>' +
+                    '</div>' +
+                    '</div>';
+            }).join('');
+            updateAttSummary();
+        }
+
+        function setAttendance(studentId, status) {
+            currentAttendanceMap[studentId] = status;
+            const btns = document.querySelectorAll('#att-btns-' + studentId + ' button');
+            const statusMap = { present:0, late:1, absent:2, leave:3 };
+            btns.forEach((btn, i) => {
+                btn.classList.remove('ring-2','ring-offset-1','ring-green-500','ring-amber-500','ring-red-500','ring-blue-500');
+                if (i === statusMap[status]) {
+                    const rings = ['ring-green-500','ring-amber-500','ring-red-500','ring-blue-500'];
+                    btn.classList.add('ring-2','ring-offset-1', rings[i]);
+                }
+            });
+            updateAttSummary();
+        }
+
+        function markAllAttendance(status) {
+            Object.keys(currentAttendanceMap).forEach(id => setAttendance(id, status));
+        }
+
+        function updateAttSummary() {
+            const vals = Object.values(currentAttendanceMap);
+            const present = vals.filter(v=>v==='present').length;
+            const absent  = vals.filter(v=>v==='absent').length;
+            const late    = vals.filter(v=>v==='late').length;
+            const leave   = vals.filter(v=>v==='leave').length;
+            const el = document.getElementById('att-summary');
+            if (el) el.textContent = 'เข้า ' + present + ' | ขาด ' + absent + ' | สาย ' + late + ' | ลา ' + leave + ' / ทั้งหมด ' + vals.length + ' คน';
+        }
+
+        function saveAttendance() {
+            const classroom = document.getElementById('att-classroom').value;
+            const subject   = document.getElementById('att-subject').value;
+            const date      = document.getElementById('att-date').value;
+            const record = {
+                id: 'ATT-' + Date.now(),
+                classroom, subject, date,
+                data: { ...currentAttendanceMap },
+                savedAt: new Date().toISOString()
+            };
+            attendanceRecords.unshift(record);
+            if (attendanceRecords.length > 100) attendanceRecords = attendanceRecords.slice(0, 100);
+            localStorage.setItem('attendance_records', JSON.stringify(attendanceRecords));
+            const vals = Object.values(currentAttendanceMap);
+            const present = vals.filter(v=>v==='present').length;
+            closeAttendanceModal();
+            showToast('✅ บันทึกการเช็คชื่อ ' + subject + ' ' + classroom + ' — เข้าเรียน ' + present + '/' + vals.length + ' คน', 'success');
+        }
+        // ==================== END ATTENDANCE ════
+
+
+        // Export simulations
+        function exportDashboard() {
+            const win = window.open('', '_blank');
+            const totalUsers = usersData.length;
+            const teachers   = usersData.filter(u => u.role === 'Teacher').length;
+            const students   = usersData.filter(u => u.role === 'Student').length;
+            const admins     = usersData.filter(u => u.role === 'Admin').length;
+            const activeU    = usersData.filter(u => u.status === 'Active').length;
+            const totalForms = formsData.length;
+            const totalAssign = assignmentsData.length;
+            const pendingA   = assignmentsData.filter(a => a.status === 'pending').length;
+            const mediaCount = allDriveFiles.length + localMediaRegistry.length;
+
+            win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+            <title>รายงานภาพรวม Smart School</title>
+            <style>
+              body{font-family:'Sarabun',sans-serif;padding:24px;color:#1e1b4b;font-size:13px}
+              h1{color:#4F46E5;font-size:22px;margin-bottom:4px}
+              .sub{color:#888;font-size:11px;margin-bottom:24px}
+              .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+              .card{background:#f0f0ff;border-radius:12px;padding:16px;text-align:center}
+              .card .num{font-size:28px;font-weight:800;color:#4F46E5}
+              .card .lbl{font-size:11px;color:#6b7280;margin-top:4px}
+              table{width:100%;border-collapse:collapse;margin-top:12px}
+              th{background:#4F46E5;color:#fff;padding:8px 10px;text-align:left;font-size:11px}
+              td{padding:7px 10px;border-bottom:1px solid #eee;font-size:12px}
+              tr:nth-child(even){background:#f8f8ff}
+              h2{color:#4F46E5;font-size:15px;margin:20px 0 8px}
+              .badge{padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}
+              .active{background:#d1fae5;color:#065f46}.inactive{background:#fee2e2;color:#991b1b}
+              @media print{button{display:none}}
+            </style></head><body>
+            <h1>📊 รายงานภาพรวม Smart School</h1>
+            <p class="sub">สร้างเมื่อ ${new Date().toLocaleString('th-TH')}</p>
+
+            <div class="grid">
+              <div class="card"><div class="num">${totalUsers}</div><div class="lbl">ผู้ใช้ทั้งหมด</div></div>
+              <div class="card"><div class="num">${students}</div><div class="lbl">นักเรียน</div></div>
+              <div class="card"><div class="num">${teachers}</div><div class="lbl">ครูผู้สอน</div></div>
+              <div class="card"><div class="num">${totalAssign}</div><div class="lbl">งานที่มอบหมาย</div></div>
+              <div class="card"><div class="num">${totalForms}</div><div class="lbl">คลังข้อสอบ</div></div>
+              <div class="card"><div class="num">${mediaCount}</div><div class="lbl">สื่อการเรียน</div></div>
+              <div class="card"><div class="num">${pendingA}</div><div class="lbl">งานค้างส่ง</div></div>
+              <div class="card"><div class="num">${activeU}</div><div class="lbl">บัญชี Active</div></div>
+            </div>
+
+            <h2>รายชื่อผู้ใช้งานทั้งหมด</h2>
+            <table><thead><tr>${['รหัส','ชื่อ-นามสกุล','Username','บทบาท','ห้อง','สถานะ'].map(h=>'<th>'+h+'</th>').join('')}</tr></thead>
+            <tbody>${usersData.map(u=>`<tr>
+              <td>${u.id}</td><td><strong>${u.firstName} ${u.lastName}</strong></td>
+              <td><code>${u.username}</code></td><td>${u.role}</td>
+              <td>${u.classroom||'-'}</td>
+              <td><span class="badge ${u.status==='Active'?'active':'inactive'}">${u.status}</span></td>
+            </tr>`).join('')}</tbody></table>
+
+            <h2>คลังข้อสอบ Google Forms</h2>
+            <table><thead><tr>${['ชื่อข้อสอบ','วิชา','ระดับ','ความยาก'].map(h=>'<th>'+h+'</th>').join('')}</tr></thead>
+            <tbody>${formsData.map(f=>`<tr><td>${f.title}</td><td>${f.subject}</td><td>${f.level}</td><td>${f.diff}</td></tr>`).join('')}</tbody></table>
+
+            <br><button onclick="window.print()" style="padding:8px 16px;background:#4F46E5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">🖨️ พิมพ์ / บันทึก PDF</button>
+            </body></html>`);
+            win.document.close();
+        }
+
+        // ====================
         //  BULK IMPORT USERS
-        // ════════════════════════════════════════════════════
+        // ====================
         let bulkParsedUsers = [];
 
         const BULK_REQUIRED = ['firstName','lastName','username','password','role'];
@@ -2709,7 +3049,7 @@
             e.preventDefault();
             document.getElementById('bulk-drop-zone').classList.remove('border-indigo-500','bg-indigo-50');
             const file = e.dataTransfer.files[0];
-            if (!file || !file.name.endsWith('.csv')) { alert('กรุณาใช้ไฟล์ .csv เท่านั้น'); return; }
+            if (!file || !file.name.endsWith('.csv')) { showToast('⚠️ กรุณาใช้ไฟล์ .csv เท่านั้น', 'warning'); return; }
             const reader = new FileReader();
             reader.onload = ev => {
                 document.getElementById('bulk-csv-text').value = ev.target.result.replace(new RegExp('^\\uFEFF'), '');
@@ -2720,7 +3060,7 @@
 
         function parseBulkCSV() {
             const raw = document.getElementById('bulk-csv-text').value.trim();
-            if (!raw) { alert('กรุณาวางข้อมูล CSV ก่อน'); return; }
+            if (!raw) { showToast('⚠️ กรุณาวางข้อมูล CSV ก่อน', 'warning'); return; }
 
             const lines = raw.split('\n').filter(l => l.trim());
             const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
@@ -2835,7 +3175,7 @@
             filterUsers();
             setTimeout(() => closeBulkImportModal(), 2500);
         }
-        // ════════════════════════════════════════════════════
+        // ====================
 
         function exportUserData(format) {
             const headers = ['\u0e23\u0e2b\u0e31\u0e2a','\u0e0a\u0e37\u0e48\u0e2d','\u0e19\u0e32\u0e21\u0e2a\u0e01\u0e38\u0e25','Username','Email','\u0e1a\u0e17\u0e1a\u0e32\u0e17','\u0e2b\u0e49\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19','\u0e2a\u0e16\u0e32\u0e19\u0e30'];
@@ -2895,14 +3235,14 @@
         document.addEventListener('copy', function(e) {
             if (isExamActive) {
                 e.preventDefault();
-                alert('ตรวจพบและถูกปฏิเสธ: ระบบรักษาความปลอดภัยไม่อนุญาตให้ทำการ Copy ในขณะดำเนินการประเมินผลสอบ!');
+                showToast('🚫 ระบบตรวจพบการ Copy — ไม่อนุญาตขณะสอบ', 'error');
             }
         });
 
         document.addEventListener('paste', function(e) {
             if (isExamActive) {
                 e.preventDefault();
-                alert('ตรวจพบและถูกปฏิเสธ: ไม่อนุญาตให้ทำการวางคำตอบที่คัดลอกมาลงในช่องสอบวิชาการ!');
+                showToast('🚫 ระบบตรวจพบการ Paste — ไม่อนุญาตขณะสอบ', 'error');
             }
         });
 
@@ -2965,7 +3305,29 @@
         }
 
         function renderActiveQuestion() {
-            const currentQ = currentActiveExam.questions[activeQuestionIndex];
+            const currentQ   = currentActiveExam.questions[activeQuestionIndex];
+            const total      = currentActiveExam.questions.length;
+            const isLast     = activeQuestionIndex === total - 1;
+            const isFirst    = activeQuestionIndex === 0;
+
+            // Update navigation buttons
+            const prevBtn   = document.getElementById('exam-prev-btn');
+            const nextBtn   = document.getElementById('exam-next-btn');
+            const submitBtn = document.getElementById('exam-submit-btn');
+            if (prevBtn)   prevBtn.classList.toggle('hidden', isFirst);
+            if (nextBtn)   nextBtn.classList.toggle('hidden', isLast);
+            if (submitBtn) submitBtn.classList.toggle('hidden', !isLast);
+
+            // Update progress dots
+            const dots = document.getElementById('exam-progress-dots');
+            if (dots) {
+                dots.innerHTML = currentActiveExam.questions.map((_, i) => {
+                    const answered = selectedAnswers[i] !== undefined;
+                    const active   = i === activeQuestionIndex;
+                    const color    = active ? 'bg-primary' : answered ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600';
+                    return `<button onclick="jumpToQuestion(${i})" title="ข้อ ${i+1}" class="w-6 h-6 rounded-full text-[10px] font-bold text-white ${color} hover:opacity-80 transition">${i+1}</button>`;
+                }).join('');
+            }
             document.getElementById('exam-question-text').textContent = currentQ.q;
 
             const optionsContainer = document.getElementById('exam-options-container');
@@ -3006,18 +3368,54 @@
             }
         }
 
+        function prevExamQuestion() {
+            if (activeQuestionIndex > 0) {
+                activeQuestionIndex--;
+                renderActiveQuestion();
+            }
+        }
+
+        function jumpToQuestion(idx) {
+            activeQuestionIndex = idx;
+            renderActiveQuestion();
+        }
+
         function finishExam() {
             stopExamTimer();
             isExamActive = false;
-            alert('การส่งข้อสอบและสรุปผลสำเร็จ: ยินดีด้วยคุณทำแบบทดสอบผ่านเกณฑ์วัดระดับความประพฤติวิชาการ!');
-            
-            // Exit Fullscreen mode simulation safely
-            if (document.exitFullscreen) {
-                document.exitFullscreen().catch(() => {});
-            }
+            // Calculate score
+            let correct = 0;
+            const total = currentActiveExam.questions.length;
+            currentActiveExam.questions.forEach((q, idx) => {
+                if (selectedAnswers[idx] === q.correct) correct++;
+            });
+            const pct = Math.round((correct / total) * 100);
+            const passed = pct >= 60;
 
-            document.getElementById('exam-placeholder').classList.remove('hidden');
-            document.getElementById('exam-main-panel').classList.add('hidden');
+            // Show result
+            const mainPanel = document.getElementById('exam-main-panel');
+            if (mainPanel) {
+                mainPanel.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 space-y-4 text-center">
+                    <div class="text-7xl mb-2">${passed ? '🎉' : '📝'}</div>
+                    <h2 class="text-2xl font-bold dark:text-white">${passed ? 'ผ่านการทดสอบ!' : 'ยังไม่ผ่านเกณฑ์'}</h2>
+                    <div class="text-6xl font-extrabold ${passed ? 'text-green-500' : 'text-amber-500'}">${pct}%</div>
+                    <p class="text-slate-500 text-sm">ตอบถูก <strong>${correct}</strong> จาก <strong>${total}</strong> ข้อ</p>
+                    <div class="w-full max-w-xs bg-slate-200 dark:bg-slate-700 rounded-full h-3 mt-2">
+                        <div class="h-3 rounded-full transition-all ${passed ? 'bg-green-500' : 'bg-amber-500'}" style="width:${pct}%"></div>
+                    </div>
+                    <p class="text-xs text-slate-400">${passed ? 'ยอดเยี่ยม! คุณผ่านเกณฑ์ 60%' : 'เกณฑ์ผ่าน 60% — ลองทำซ้ำอีกครั้ง'}</p>
+                    <div class="flex gap-3 mt-4">
+                        <button onclick="stopExam()" class="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                            <i class="fa-solid fa-house mr-1"></i>กลับหน้าหลัก
+                        </button>
+                        <button onclick="retryExam()" class="px-6 py-2.5 bg-primary text-white rounded-xl font-semibold text-sm hover:bg-opacity-90 transition">
+                            <i class="fa-solid fa-rotate-right mr-1"></i>ทำซ้ำ
+                        </button>
+                    </div>
+                </div>`;
+            }
+            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
         }
 
         // Init database views
@@ -3040,9 +3438,12 @@
         }
 
         function stopExamTimer() {
-            if (examTimeInterval) {
-                clearInterval(examTimeInterval);
-            }
+            if (examTimeInterval) clearInterval(examTimeInterval);
+        }
+
+        function retryExam() {
+            const firstKey = Object.keys(examsData)[0];
+            if (firstKey) prepareExam(firstKey);
         }
 
         // CHARTS DATA AND INITIALIZATION
