@@ -1441,7 +1441,7 @@
         // ══════════════════════════════════════════════════════
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
         // ══════════════════════════════════════════════════════
-        const GAS_URL = ''; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx05P2bkPNYaGa8WLiOzyrO4mrgmOOpxJ4KEicYwYDF1Rube0vANUxphphH7f4m-MHJ/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
         // ══ API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
@@ -2680,27 +2680,26 @@
         }
 
         function downloadTemplate() {
-            const csv = 'firstName,lastName,username,password,email,role,classroom,parentUsername,parentPassword
-' +
-                        'สมหญิง,ดีมาก,somying,pass123,somying@school.ac.th,Student,ม.2/1,parent_somying,parent123
-' +
-                        'สมศรี,รักเรียน,somsri,pass456,somsri@school.ac.th,Teacher,วิทย์-คณิต,,
-' +
-                        'สมชาย,ขยันดี,somchai,pass789,somchai@school.ac.th,Student,ม.3/2,parent_somchai,parent456
-';
-            const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+            const rows = [
+                'firstName,lastName,username,password,email,role,classroom,parentUsername,parentPassword',
+                '\u0e2a\u0e21\u0e2b\u0e0d\u0e34\u0e07,\u0e14\u0e35\u0e21\u0e32\u0e01,somying,pass123,somying@school.ac.th,Student,\u0e21.2/1,parent_somying,parent123',
+                '\u0e2a\u0e21\u0e28\u0e23\u0e35,\u0e23\u0e31\u0e01\u0e40\u0e23\u0e35\u0e22\u0e19,somsri,pass456,somsri@school.ac.th,Teacher,\u0e27\u0e34\u0e17\u0e22\u0e4c-\u0e04\u0e13\u0e34\u0e15,,',
+                '\u0e2a\u0e21\u0e0a\u0e32\u0e22,\u0e02\u0e22\u0e31\u0e19\u0e14\u0e35,somchai,pass789,somchai@school.ac.th,Student,\u0e21.3/2,parent_somchai,parent456'
+            ];
+            const csv = '\uFEFF' + rows.join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = 'bulk_import_template.csv';
             a.click();
         }
 
-        function handleBulkFile(input) {
+                function handleBulkFile(input) {
             const file = input.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = e => {
-                document.getElementById('bulk-csv-text').value = e.target.result.replace(/^﻿/, '');
+                document.getElementById('bulk-csv-text').value = e.target.result.replace(new RegExp('^\\uFEFF'), '');
                 parseBulkCSV();
             };
             reader.readAsText(file, 'UTF-8');
@@ -2713,7 +2712,7 @@
             if (!file || !file.name.endsWith('.csv')) { alert('กรุณาใช้ไฟล์ .csv เท่านั้น'); return; }
             const reader = new FileReader();
             reader.onload = ev => {
-                document.getElementById('bulk-csv-text').value = ev.target.result.replace(/^﻿/, '');
+                document.getElementById('bulk-csv-text').value = ev.target.result.replace(new RegExp('^\\uFEFF'), '');
                 parseBulkCSV();
             };
             reader.readAsText(file, 'UTF-8');
@@ -2723,9 +2722,7 @@
             const raw = document.getElementById('bulk-csv-text').value.trim();
             if (!raw) { alert('กรุณาวางข้อมูล CSV ก่อน'); return; }
 
-            const lines = raw.split(/
-?
-/).filter(l => l.trim());
+            const lines = raw.split('\n').filter(l => l.trim());
             const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
             const rows    = lines.slice(1);
 
@@ -2841,48 +2838,50 @@
         // ════════════════════════════════════════════════════
 
         function exportUserData(format) {
-            const rows = [['รหัส','ชื่อ','นามสกุล','Username','Email','บทบาท','ห้องเรียน','สถานะ']];
-            usersData.forEach(u => rows.push([u.id, u.firstName, u.lastName, u.username, u.email, u.role, u.classroom, u.status]));
+            const headers = ['\u0e23\u0e2b\u0e31\u0e2a','\u0e0a\u0e37\u0e48\u0e2d','\u0e19\u0e32\u0e21\u0e2a\u0e01\u0e38\u0e25','Username','Email','\u0e1a\u0e17\u0e1a\u0e32\u0e17','\u0e2b\u0e49\u0e2d\u0e07\u0e40\u0e23\u0e35\u0e22\u0e19','\u0e2a\u0e16\u0e32\u0e19\u0e30'];
+            const dataRows = usersData.map(u => [u.id, u.firstName, u.lastName, u.username, u.email, u.role, u.classroom, u.status]);
 
             if (format === 'csv') {
-                const bom = '﻿';
-                const csv = bom + rows.map(r => r.map(c => `"${(c||'').toString().replace(/"/g,'""')}"`).join(',')).join('
-');
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                a.download = `users_export_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+                const csvLines = [headers, ...dataRows].map(function(row) {
+                    return row.map(function(c) {
+                        var s = (c || '').toString().replace(/"/g, '""');
+                        return '"' + s + '"';
+                    }).join(',');
+                });
+                var csvContent = '\uFEFF' + csvLines.join('\r\n');
+                var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'users_export_' + new Date().toISOString().slice(0,10) + '.csv';
+                a.click();
+                return;
+            }
 
-            } else if (format === 'pdf') {
-                const win = window.open('', '_blank');
-                win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-                <title>รายชื่อผู้ใช้งาน Smart School</title>
-                <style>
-                  body{font-family:'Sarabun',sans-serif;padding:20px;font-size:13px}
-                  h2{color:#4F46E5;margin-bottom:4px}p.sub{color:#888;margin-bottom:16px;font-size:11px}
-                  table{width:100%;border-collapse:collapse}
-                  th{background:#4F46E5;color:#fff;padding:8px 10px;text-align:left;font-size:12px}
-                  td{padding:7px 10px;border-bottom:1px solid #eee;font-size:12px}
-                  tr:nth-child(even){background:#f8f8ff}
-                  .badge{padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}
-                  .active{background:#d1fae5;color:#065f46}.inactive{background:#fee2e2;color:#991b1b}
-                  @media print{button{display:none}}
-                </style></head><body>
-                <h2>📋 รายชื่อผู้ใช้งาน Smart School</h2>
-                <p class="sub">ส่งออกเมื่อ: ${new Date().toLocaleString('th-TH')} — จำนวน ${usersData.length} คน</p>
-                <table><thead><tr>${['รหัส','ชื่อ-นามสกุล','Username','Email','บทบาท','ห้อง','สถานะ'].map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>
-                ${usersData.map(u=>`<tr>
-                  <td>${u.id}</td><td><strong>${u.firstName} ${u.lastName}</strong></td>
-                  <td><code>${u.username}</code></td><td>${u.email||'-'}</td>
-                  <td>${u.role}</td><td>${u.classroom||'-'}</td>
-                  <td><span class="badge ${u.status==='Active'?'active':'inactive'}">${u.status}</span></td>
-                </tr>`).join('')}
-                </tbody></table>
-                <br><button onclick="window.print()" style="padding:8px 16px;background:#4F46E5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px">🖨️ พิมพ์ / บันทึก PDF</button>
-                </body></html>`);
+            if (format === 'pdf') {
+                var win = window.open('', '_blank');
+                var tableRows = dataRows.map(function(u) {
+                    return '<tr><td>' + u[0] + '</td><td><strong>' + u[1] + ' ' + u[2] + '</strong></td>' +
+                           '<td><code>' + u[3] + '</code></td><td>' + (u[4]||'-') + '</td>' +
+                           '<td>' + u[5] + '</td><td>' + (u[6]||'-') + '</td>' +
+                           '<td><span class="badge ' + (u[7]==='Active'?'active':'inactive') + '">' + u[7] + '</span></td></tr>';
+                }).join('');
+                var headerCells = headers.map(function(h){ return '<th>' + h + '</th>'; }).join('');
+                win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>\u0e23\u0e32\u0e22\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19</title>' +
+                    '<style>body{font-family:sans-serif;padding:20px;font-size:13px}' +
+                    'h2{color:#4F46E5}table{width:100%;border-collapse:collapse}' +
+                    'th{background:#4F46E5;color:#fff;padding:8px;text-align:left;font-size:12px}' +
+                    'td{padding:7px;border-bottom:1px solid #eee;font-size:12px}' +
+                    'tr:nth-child(even){background:#f8f8ff}.badge{padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}' +
+                    '.active{background:#d1fae5;color:#065f46}.inactive{background:#fee2e2;color:#991b1b}' +
+                    '@media print{button{display:none}}</style></head><body>' +
+                    '<h2>\ud83d\udccb \u0e23\u0e32\u0e22\u0e0a\u0e37\u0e48\u0e2d\u0e1c\u0e39\u0e49\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19 Smart School</h2>' +
+                    '<p>\u0e2a\u0e48\u0e07\u0e2d\u0e2d\u0e01\u0e40\u0e21\u0e37\u0e48\u0e2d: ' + new Date().toLocaleString('th-TH') + ' \u2014 ' + usersData.length + ' \u0e04\u0e19</p>' +
+                    '<table><thead><tr>' + headerCells + '</tr></thead><tbody>' + tableRows + '</tbody></table>' +
+                    '<br><button onclick="window.print()" style="padding:8px 16px;background:#4F46E5;color:#fff;border:none;border-radius:8px;cursor:pointer">\ud83d\udda8\ufe0f \u0e1e\u0e34\u0e21\u0e1e\u0e4c / \u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01 PDF</button>' +
+                    '</body></html>');
                 win.document.close();
             }
         }
-
         // EXAM ANTI-CHEAT SECURITY INTERACTION
         // Detect user switching tabs or window blur
         window.addEventListener('blur', function() {
