@@ -892,11 +892,192 @@
                     </div>
                 </div>
             </section>
+
+            <!-- ══ CLASSROOM MANAGEMENT ══ -->
+            <section id="section-classroom-mgmt" class="menu-section hidden space-y-6">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold dark:text-white">จัดการชั้นเรียน</h2>
+                        <p class="text-sm text-slate-500">เพิ่ม แก้ไข และกำหนดครูประจำชั้นเรียน</p>
+                    </div>
+                    <button onclick="openClassroomModal()" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-opacity-90 transition">
+                        <i class="fa-solid fa-plus mr-1"></i>เพิ่มชั้นเรียน
+                    </button>
+                </div>
+                <div class="bg-white dark:bg-darkCard rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 text-xs uppercase">
+                            <tr>
+                                <th class="p-3 text-left">ชั้นเรียน</th>
+                                <th class="p-3 text-left">ระดับชั้น</th>
+                                <th class="p-3 text-left">ครูประจำชั้น</th>
+                                <th class="p-3 text-left">นักเรียน</th>
+                                <th class="p-3 text-left">วิชา</th>
+                                <th class="p-3 text-right">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="classroom-table-body"></tbody>
+                    </table>
+                    <div id="classroom-empty" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                        <i class="fa-solid fa-school text-4xl mb-3 text-slate-300"></i>
+                        <p class="text-sm">ยังไม่มีชั้นเรียน กดเพิ่มเพื่อเริ่มต้น</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══ SUBJECT MANAGEMENT ══ -->
+            <section id="section-subject-mgmt" class="menu-section hidden space-y-6">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold dark:text-white">จัดการวิชาเรียน</h2>
+                        <p class="text-sm text-slate-500">เพิ่ม แก้ไข รายวิชาและผู้สอน</p>
+                    </div>
+                    <button onclick="openSubjectModal()" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-opacity-90 transition">
+                        <i class="fa-solid fa-plus mr-1"></i>เพิ่มวิชา
+                    </button>
+                </div>
+                <div class="bg-white dark:bg-darkCard rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <table class="w-full text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-500 text-xs uppercase">
+                            <tr>
+                                <th class="p-3 text-left">รหัสวิชา</th>
+                                <th class="p-3 text-left">ชื่อวิชา</th>
+                                <th class="p-3 text-left">กลุ่มสาระ</th>
+                                <th class="p-3 text-left">ผู้สอน</th>
+                                <th class="p-3 text-left">หน่วยกิต</th>
+                                <th class="p-3 text-right">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subject-table-body"></tbody>
+                    </table>
+                    <div id="subject-empty" class="hidden flex-col items-center justify-center py-12 text-slate-400">
+                        <i class="fa-solid fa-book text-4xl mb-3 text-slate-300"></i>
+                        <p class="text-sm">ยังไม่มีวิชาเรียน</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══ SCHEDULE MANAGEMENT ══ -->
+            <section id="section-schedule-mgmt" class="menu-section hidden space-y-6">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold dark:text-white">จัดการตารางเรียน</h2>
+                        <p class="text-sm text-slate-500">กำหนดตารางเรียนแต่ละห้องแต่ละวัน</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <select id="schedule-class-select" onchange="renderScheduleGrid()" class="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">— เลือกห้องเรียน —</option>
+                        </select>
+                        <button onclick="saveSchedule()" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i>บันทึกตาราง
+                        </button>
+                    </div>
+                </div>
+                <!-- Schedule Grid -->
+                <div id="schedule-grid-wrap" class="bg-white dark:bg-darkCard rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-x-auto">
+                    <div id="schedule-grid" class="min-w-[700px] p-4">
+                        <p class="text-sm text-slate-400 text-center py-8">เลือกห้องเรียนเพื่อแก้ไขตาราง</p>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
 
 
+
+
+    <!-- CLASSROOM MODAL -->
+    <div id="classroom-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
+        <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="classroom-modal-title" class="text-lg font-bold dark:text-white">เพิ่มชั้นเรียน</h3>
+                <button onclick="closeClassroomModal()" class="text-slate-400 hover:text-red-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">ระดับชั้น <span class="text-red-500">*</span></label>
+                        <select id="cls-level" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option>ม.1</option><option>ม.2</option><option>ม.3</option>
+                            <option>ม.4</option><option>ม.5</option><option>ม.6</option>
+                            <option>ป.1</option><option>ป.2</option><option>ป.3</option>
+                            <option>ป.4</option><option>ป.5</option><option>ป.6</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">ห้อง <span class="text-red-500">*</span></label>
+                        <input id="cls-room" type="text" placeholder="เช่น 1, 2, A" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">ครูประจำชั้น</label>
+                    <select id="cls-teacher" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="">— ยังไม่กำหนด —</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">แผนการเรียน / สาย</label>
+                    <input id="cls-track" type="text" placeholder="เช่น วิทย์-คณิต, ศิลป์-ภาษา" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeClassroomModal()" class="px-4 py-2 text-sm text-slate-500 hover:text-slate-700">ยกเลิก</button>
+                <button onclick="saveClassroom()" class="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-opacity-90 transition"><i class="fa-solid fa-floppy-disk mr-1"></i>บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBJECT MODAL -->
+    <div id="subject-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
+        <div class="bg-white dark:bg-darkCard rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 id="subject-modal-title" class="text-lg font-bold dark:text-white">เพิ่มวิชาเรียน</h3>
+                <button onclick="closeSubjectModal()" class="text-slate-400 hover:text-red-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">รหัสวิชา <span class="text-red-500">*</span></label>
+                        <input id="subj-code" type="text" placeholder="เช่น CS2101" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase">หน่วยกิต</label>
+                        <input id="subj-credit" type="number" min="1" max="6" value="2" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">ชื่อวิชา <span class="text-red-500">*</span></label>
+                    <input id="subj-name" type="text" placeholder="เช่น วิทยาการคำนวณ" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">กลุ่มสาระการเรียนรู้</label>
+                    <select id="subj-group" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option>วิทยาศาสตร์และเทคโนโลยี</option>
+                        <option>คณิตศาสตร์</option>
+                        <option>ภาษาไทย</option>
+                        <option>ภาษาต่างประเทศ</option>
+                        <option>สังคมศึกษาฯ</option>
+                        <option>สุขศึกษาและพลศึกษา</option>
+                        <option>ศิลปะ</option>
+                        <option>การงานอาชีพ</option>
+                        <option>กิจกรรมพัฒนาผู้เรียน</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase">ครูผู้สอน</label>
+                    <select id="subj-teacher" class="mt-1 w-full px-3 py-2 border border-slate-300 rounded-lg text-sm dark:bg-slate-800 dark:border-slate-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="">— ยังไม่กำหนด —</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeSubjectModal()" class="px-4 py-2 text-sm text-slate-500 hover:text-slate-700">ยกเลิก</button>
+                <button onclick="saveSubject()" class="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-opacity-90 transition"><i class="fa-solid fa-floppy-disk mr-1"></i>บันทึก</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ANNOUNCEMENT MODAL -->
     <div id="announcement-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden p-4">
@@ -2112,6 +2293,15 @@
                         try { renderStudentDashboard(); } catch(e) { console.error('renderStudentDashboard:', e); }
                     }
                 }
+                if (sectionId === 'section-classroom-mgmt') {
+                    try { renderClassroomTable(); } catch(e) { console.error(e); }
+                }
+                if (sectionId === 'section-subject-mgmt') {
+                    try { renderSubjectTable(); } catch(e) { console.error(e); }
+                }
+                if (sectionId === 'section-schedule-mgmt') {
+                    try { initDefaultData(); populateScheduleClassSelect(); renderScheduleGrid(); } catch(e) { console.error(e); }
+                }
             }
 
             // Update active state class in sidebar
@@ -2143,6 +2333,16 @@
                     </button>
                     <button onclick="switchTab('section-user-management')" class="sidebar-link w-full text-left">
                         <i class="fa-solid fa-user-gear"></i> <span>จัดการผู้ใช้งาน</span>
+                    </button>
+                    <div class="px-3 my-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">จัดการการศึกษา</div>
+                    <button onclick="switchTab('section-classroom-mgmt')" class="sidebar-link w-full text-left">
+                        <i class="fa-solid fa-school"></i> <span>จัดการชั้นเรียน</span>
+                    </button>
+                    <button onclick="switchTab('section-subject-mgmt')" class="sidebar-link w-full text-left">
+                        <i class="fa-solid fa-book-open"></i> <span>จัดการวิชาเรียน</span>
+                    </button>
+                    <button onclick="switchTab('section-schedule-mgmt')" class="sidebar-link w-full text-left">
+                        <i class="fa-solid fa-calendar-days"></i> <span>จัดการตารางเรียน</span>
                     </button>
                     <div class="px-3 my-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">ระบบการสอน</div>
                     <button onclick="switchTab('section-media-library')" class="sidebar-link w-full text-left">
@@ -2505,6 +2705,316 @@
         // ════ END ASSIGNMENT ATTACHMENTS ════
 
 
+
+        // ════════════════════════════════════════════════════
+        //  CLASSROOM MANAGEMENT
+        // ════════════════════════════════════════════════════
+        let classroomsData = JSON.parse(localStorage.getItem('classrooms_data') || '[]');
+        let subjectsData   = JSON.parse(localStorage.getItem('subjects_data')   || '[]');
+        let editingClassId = null;
+        let editingSubjId  = null;
+
+        function initDefaultData() {
+            if (classroomsData.length === 0) {
+                classroomsData = [
+                    { id: 'CLS-001', level: 'ม.2', room: '1', name: 'ม.2/1', teacher: 'natee', track: 'วิทย์-คณิต' },
+                    { id: 'CLS-002', level: 'ม.2', room: '2', name: 'ม.2/2', teacher: 'natee', track: 'ศิลป์-ภาษา' },
+                    { id: 'CLS-003', level: 'ม.3', room: '1', name: 'ม.3/1', teacher: '',     track: 'วิทย์-คณิต' },
+                ];
+                saveClassrooms();
+            }
+            if (subjectsData.length === 0) {
+                subjectsData = [
+                    { id: 'SUBJ-001', code: 'CS2101', name: 'วิทยาการคำนวณ',         group: 'วิทยาศาสตร์และเทคโนโลยี', teacher: 'natee', credit: 2 },
+                    { id: 'SUBJ-002', code: 'CS2102', name: 'การเขียนโปรแกรม Scratch', group: 'วิทยาศาสตร์และเทคโนโลยี', teacher: 'natee', credit: 1 },
+                    { id: 'SUBJ-003', code: 'TE2101', name: 'การออกแบบเทคโนโลยี',     group: 'วิทยาศาสตร์และเทคโนโลยี', teacher: 'natee', credit: 2 },
+                    { id: 'SUBJ-004', code: 'MA2101', name: 'คณิตศาสตร์ขั้นสูง',      group: 'คณิตศาสตร์',               teacher: '',     credit: 3 },
+                    { id: 'SUBJ-005', code: 'EN2101', name: 'ภาษาอังกฤษเพิ่มเติม',    group: 'ภาษาต่างประเทศ',           teacher: '',     credit: 2 },
+                    { id: 'SUBJ-006', code: 'SC2101', name: 'วิทยาศาสตร์',            group: 'วิทยาศาสตร์และเทคโนโลยี', teacher: '',     credit: 3 },
+                    { id: 'SUBJ-007', code: 'TH2101', name: 'ภาษาไทย',                group: 'ภาษาไทย',                  teacher: '',     credit: 3 },
+                ];
+                saveSubjects();
+            }
+        }
+
+        function saveClassrooms() { localStorage.setItem('classrooms_data', JSON.stringify(classroomsData)); }
+        function saveSubjects()   { localStorage.setItem('subjects_data',   JSON.stringify(subjectsData));   }
+
+        // ── Classroom Table ────────────────────────────────
+        function renderClassroomTable() {
+            initDefaultData();
+            const tbody = document.getElementById('classroom-table-body');
+            const empty = document.getElementById('classroom-empty');
+            if (!tbody) return;
+            if (!classroomsData.length) {
+                tbody.innerHTML = '';
+                empty.style.display = 'flex'; empty.classList.remove('hidden'); return;
+            }
+            empty.style.display = 'none'; empty.classList.add('hidden');
+            tbody.innerHTML = classroomsData.map(c => {
+                const teacher  = usersData.find(u => u.username === c.teacher);
+                const tName    = teacher ? teacher.firstName + ' ' + teacher.lastName : '<span class="text-slate-400">ยังไม่กำหนด</span>';
+                const students = usersData.filter(u => u.role === 'Student' && u.classroom === c.name).length;
+                const subjCount = getClassroomSubjects(c.name).length;
+                return '<tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition">'
+                    + '<td class="p-3 font-bold dark:text-white">' + c.name + '</td>'
+                    + '<td class="p-3 text-slate-600 dark:text-slate-300">' + c.level + '</td>'
+                    + '<td class="p-3 text-slate-600 dark:text-slate-300">' + tName + '</td>'
+                    + '<td class="p-3"><span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded font-semibold">' + students + ' คน</span></td>'
+                    + '<td class="p-3"><span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded font-semibold">' + subjCount + ' วิชา</span></td>'
+                    + '<td class="p-3 text-right space-x-1">'
+                    + '<button onclick="editClassroom(\'' + c.id + '\')" class="text-indigo-500 hover:text-indigo-700 p-1 rounded"><i class="fa-solid fa-pen-to-square text-xs"></i></button>'
+                    + '<button onclick="deleteClassroom(\'' + c.id + '\')" class="text-red-400 hover:text-red-600 p-1 rounded"><i class="fa-solid fa-trash text-xs"></i></button>'
+                    + '</td></tr>';
+            }).join('');
+        }
+
+        function getClassroomSubjects(className) {
+            const sched = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            const entries = sched[className] || [];
+            return [...new Set(entries.map(e => e.subject))].filter(Boolean);
+        }
+
+        function openClassroomModal(id = null) {
+            editingClassId = id;
+            const modal = document.getElementById('classroom-modal');
+            const titleEl = document.getElementById('classroom-modal-title');
+            // Populate teacher dropdown
+            const sel = document.getElementById('cls-teacher');
+            sel.innerHTML = '<option value="">— ยังไม่กำหนด —</option>'
+                + usersData.filter(u => u.role === 'Teacher' && u.status === 'Active')
+                    .map(u => '<option value="' + u.username + '">' + u.firstName + ' ' + u.lastName + '</option>').join('');
+            if (id) {
+                const c = classroomsData.find(x => x.id === id);
+                if (c) {
+                    titleEl.textContent = 'แก้ไขชั้นเรียน ' + c.name;
+                    document.getElementById('cls-level').value   = c.level;
+                    document.getElementById('cls-room').value    = c.room;
+                    document.getElementById('cls-teacher').value = c.teacher || '';
+                    document.getElementById('cls-track').value   = c.track || '';
+                }
+            } else {
+                titleEl.textContent = 'เพิ่มชั้นเรียน';
+                document.getElementById('cls-room').value    = '';
+                document.getElementById('cls-teacher').value = '';
+                document.getElementById('cls-track').value   = '';
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeClassroomModal() { document.getElementById('classroom-modal').classList.add('hidden'); }
+
+        function saveClassroom() {
+            const level   = document.getElementById('cls-level').value;
+            const room    = document.getElementById('cls-room').value.trim();
+            const teacher = document.getElementById('cls-teacher').value;
+            const track   = document.getElementById('cls-track').value.trim();
+            if (!room) { showToast('⚠️ กรุณากรอกหมายเลขห้อง', 'warning'); return; }
+            const name = level + '/' + room;
+            const existing = classroomsData.find(c => c.name === name && c.id !== editingClassId);
+            if (existing) { showToast('⚠️ ชั้นเรียน ' + name + ' มีอยู่แล้ว', 'warning'); return; }
+            const entry = { id: editingClassId || ('CLS-' + Date.now()), level, room, name, teacher, track };
+            if (editingClassId) {
+                const idx = classroomsData.findIndex(c => c.id === editingClassId);
+                if (idx !== -1) classroomsData[idx] = entry;
+            } else {
+                classroomsData.push(entry);
+            }
+            saveClassrooms();
+            renderClassroomTable();
+            populateScheduleClassSelect();
+            closeClassroomModal();
+            showToast('✅ บันทึกชั้นเรียน ' + name + ' สำเร็จ', 'success');
+        }
+
+        function editClassroom(id) { openClassroomModal(id); }
+
+        function deleteClassroom(id) {
+            const c = classroomsData.find(x => x.id === id);
+            if (!confirm('ลบชั้นเรียน ' + (c ? c.name : id) + '?')) return;
+            classroomsData = classroomsData.filter(x => x.id !== id);
+            saveClassrooms();
+            renderClassroomTable();
+            populateScheduleClassSelect();
+            showToast('🗑️ ลบชั้นเรียนสำเร็จ', 'info');
+        }
+
+        // ── Subject Table ──────────────────────────────────
+        function renderSubjectTable() {
+            initDefaultData();
+            const tbody = document.getElementById('subject-table-body');
+            const empty = document.getElementById('subject-empty');
+            if (!tbody) return;
+            if (!subjectsData.length) {
+                tbody.innerHTML = '';
+                empty.style.display = 'flex'; empty.classList.remove('hidden'); return;
+            }
+            empty.style.display = 'none'; empty.classList.add('hidden');
+            tbody.innerHTML = subjectsData.map(s => {
+                const teacher = usersData.find(u => u.username === s.teacher);
+                const tName   = teacher ? teacher.firstName + ' ' + teacher.lastName : '<span class="text-slate-400">ยังไม่กำหนด</span>';
+                return '<tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition">'
+                    + '<td class="p-3 font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">' + s.code + '</td>'
+                    + '<td class="p-3 font-semibold dark:text-white">' + s.name + '</td>'
+                    + '<td class="p-3 text-xs text-slate-500">' + s.group + '</td>'
+                    + '<td class="p-3 text-sm text-slate-600 dark:text-slate-300">' + tName + '</td>'
+                    + '<td class="p-3"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded font-semibold">' + (s.credit||1) + ' หน่วย</span></td>'
+                    + '<td class="p-3 text-right space-x-1">'
+                    + '<button onclick="editSubject(\'' + s.id + '\')" class="text-indigo-500 hover:text-indigo-700 p-1 rounded"><i class="fa-solid fa-pen-to-square text-xs"></i></button>'
+                    + '<button onclick="deleteSubject(\'' + s.id + '\')" class="text-red-400 hover:text-red-600 p-1 rounded"><i class="fa-solid fa-trash text-xs"></i></button>'
+                    + '</td></tr>';
+            }).join('');
+        }
+
+        function openSubjectModal(id = null) {
+            editingSubjId = id;
+            const titleEl = document.getElementById('subject-modal-title');
+            const tSel    = document.getElementById('subj-teacher');
+            tSel.innerHTML = '<option value="">— ยังไม่กำหนด —</option>'
+                + usersData.filter(u => u.role === 'Teacher' && u.status === 'Active')
+                    .map(u => '<option value="' + u.username + '">' + u.firstName + ' ' + u.lastName + '</option>').join('');
+            if (id) {
+                const s = subjectsData.find(x => x.id === id);
+                if (s) {
+                    titleEl.textContent = 'แก้ไขวิชา ' + s.name;
+                    document.getElementById('subj-code').value    = s.code;
+                    document.getElementById('subj-name').value    = s.name;
+                    document.getElementById('subj-group').value   = s.group;
+                    document.getElementById('subj-teacher').value = s.teacher || '';
+                    document.getElementById('subj-credit').value  = s.credit || 2;
+                }
+            } else {
+                titleEl.textContent = 'เพิ่มวิชาเรียน';
+                ['subj-code','subj-name'].forEach(id => { document.getElementById(id).value = ''; });
+                document.getElementById('subj-credit').value = '2';
+                document.getElementById('subj-teacher').value = '';
+            }
+            document.getElementById('subject-modal').classList.remove('hidden');
+        }
+
+        function closeSubjectModal() { document.getElementById('subject-modal').classList.add('hidden'); }
+
+        function saveSubject() {
+            const code    = document.getElementById('subj-code').value.trim();
+            const name    = document.getElementById('subj-name').value.trim();
+            const group   = document.getElementById('subj-group').value;
+            const teacher = document.getElementById('subj-teacher').value;
+            const credit  = parseInt(document.getElementById('subj-credit').value) || 2;
+            if (!code || !name) { showToast('⚠️ กรุณากรอกรหัสและชื่อวิชา', 'warning'); return; }
+            const entry = { id: editingSubjId || ('SUBJ-' + Date.now()), code, name, group, teacher, credit };
+            if (editingSubjId) {
+                const idx = subjectsData.findIndex(s => s.id === editingSubjId);
+                if (idx !== -1) subjectsData[idx] = entry;
+            } else {
+                subjectsData.push(entry);
+            }
+            saveSubjects();
+            renderSubjectTable();
+            closeSubjectModal();
+            showToast('✅ บันทึกวิชา ' + name + ' สำเร็จ', 'success');
+        }
+
+        function editSubject(id) { openSubjectModal(id); }
+
+        function deleteSubject(id) {
+            const s = subjectsData.find(x => x.id === id);
+            if (!confirm('ลบวิชา ' + (s ? s.name : id) + '?')) return;
+            subjectsData = subjectsData.filter(x => x.id !== id);
+            saveSubjects();
+            renderSubjectTable();
+            showToast('🗑️ ลบวิชาสำเร็จ', 'info');
+        }
+
+        // ════════════════════════════════════════════════════
+        //  SCHEDULE MANAGEMENT
+        // ════════════════════════════════════════════════════
+        const DAYS    = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'];
+        const PERIODS = ['08:00-09:00','09:00-10:00','10:00-11:00','11:00-12:00','13:00-14:00','14:00-15:00','15:00-16:00'];
+
+        let currentScheduleClass = '';
+        let scheduleEdits = {}; // { 'จันทร์_08:00-09:00': 'วิชา' }
+
+        function populateScheduleClassSelect() {
+            initDefaultData();
+            const sel = document.getElementById('schedule-class-select');
+            if (!sel) return;
+            const prev = sel.value;
+            sel.innerHTML = '<option value="">— เลือกห้องเรียน —</option>'
+                + classroomsData.map(c => '<option value="' + c.name + '">' + c.name + ' (' + (c.track||'-') + ')</option>').join('');
+            if (prev && classroomsData.find(c => c.name === prev)) sel.value = prev;
+        }
+
+        function renderScheduleGrid() {
+            const sel = document.getElementById('schedule-class-select');
+            const cls = sel ? sel.value : '';
+            currentScheduleClass = cls;
+            const grid = document.getElementById('schedule-grid');
+            if (!grid) return;
+            if (!cls) { grid.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">เลือกห้องเรียนเพื่อแก้ไขตาราง</p>'; return; }
+
+            // Load saved schedule
+            const store  = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            const saved  = store[cls] || [];
+            scheduleEdits = {};
+            saved.forEach(e => { scheduleEdits[e.day + '_' + e.time] = e.subject; });
+
+            // Build subject options
+            const subjOpts = '<option value="">— ว่าง —</option>'
+                + subjectsData.map(s => '<option value="' + s.name + '">' + s.name + '</option>').join('');
+
+            let html = '<h3 class="font-bold text-base dark:text-white mb-3">ตารางเรียน ' + cls + '</h3>';
+            html += '<div class="overflow-x-auto"><table class="w-full text-xs border-collapse">';
+            // Header
+            html += '<thead><tr><th class="p-2 text-left text-slate-400 font-semibold w-28">คาบ/วัน</th>';
+            DAYS.forEach(d => { html += '<th class="p-2 text-center text-slate-600 dark:text-slate-300 font-bold">' + d + '</th>'; });
+            html += '</tr></thead><tbody>';
+            // Rows
+            PERIODS.forEach(period => {
+                html += '<tr class="border-t border-slate-100 dark:border-slate-800">';
+                html += '<td class="p-2 text-slate-400 font-mono whitespace-nowrap">' + period + '</td>';
+                DAYS.forEach(day => {
+                    const key = day + '_' + period;
+                    const val = scheduleEdits[key] || '';
+                    html += '<td class="p-1">'
+                        + '<select onchange="scheduleEdits[\'' + key + '\']=this.value" class="w-full px-1.5 py-1 border border-slate-200 dark:border-slate-600 rounded text-[11px] dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-primary">'
+                        + subjOpts.replace('value="' + val + '"', 'value="' + val + '" selected')
+                        + '</select></td>';
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+            grid.innerHTML = html;
+        }
+
+        function saveSchedule() {
+            if (!currentScheduleClass) { showToast('⚠️ กรุณาเลือกห้องเรียนก่อน', 'warning'); return; }
+            const store = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            const entries = [];
+            DAYS.forEach(day => {
+                PERIODS.forEach(period => {
+                    const key  = day + '_' + period;
+                    const subj = scheduleEdits[key] || '';
+                    if (subj) entries.push({ day, time: period, subject: subj });
+                });
+            });
+            store[currentScheduleClass] = entries;
+
+            // Also convert to old format for student dashboard compatibility
+            // (old format: [{time, subject}] - daily only → use weekday entries)
+            const today = new Date().getDay();
+            const todayName = DAYS[today - 1]; // Mon=1
+            const todayEntries = entries.filter(e => e.day === todayName).map(e => ({ time: e.time, subject: e.subject }));
+            // Keep full schedule and also store simplified
+            store[currentScheduleClass + '_full'] = entries;
+
+            localStorage.setItem('class_schedule', JSON.stringify(store));
+            showToast('✅ บันทึกตารางเรียน ' + currentScheduleClass + ' สำเร็จ', 'success');
+
+            // Refresh student dashboard if visible
+            try { renderStudentDashboard(); } catch(e) {}
+        }
+        // ════ END CLASSROOM MANAGEMENT ════
+
         // ════════════════════════════════════════════════════
         //  STUDENT DASHBOARD — dynamic data
         // ════════════════════════════════════════════════════
@@ -2576,7 +3086,21 @@
         };
         function getTodaySchedule(classroom) {
             const store = JSON.parse(localStorage.getItem('class_schedule') || '{}');
-            return store[classroom] || DEFAULT_SCHEDULE[classroom] || DEFAULT_SCHEDULE['ม.2/1'];
+            // Try full schedule first, filter by today
+            const full = store[classroom + '_full'] || store[classroom];
+            if (full && full.length) {
+                const todayIdx  = new Date().getDay(); // 0=Sun,1=Mon...
+                const days      = ['','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+                const todayName = days[todayIdx] || 'จันทร์';
+                // Full format: [{day, time, subject}]
+                if (full[0] && full[0].day) {
+                    const todayItems = full.filter(e => e.day === todayName).map(e => ({ time: e.time, subject: e.subject }));
+                    if (todayItems.length) return todayItems;
+                }
+                // Legacy format: [{time, subject}]
+                if (full[0] && full[0].time) return full;
+            }
+            return DEFAULT_SCHEDULE[classroom] || DEFAULT_SCHEDULE['ม.2/1'];
         }
         const DAY_TH = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 
