@@ -780,6 +780,37 @@
                                 <option value="การงานอาชีพ">การงานอาชีพ</option>
                             </select>
                         </div>
+                        <!-- File Attachments -->
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-bold uppercase text-slate-400">แนบไฟล์ / รูปภาพประกอบ</label>
+                            <div id="assign-drop-zone"
+                                ondragover="event.preventDefault();this.classList.add('border-indigo-500','bg-indigo-50','dark:bg-indigo-900/10')"
+                                ondragleave="this.classList.remove('border-indigo-500','bg-indigo-50','dark:bg-indigo-900/10')"
+                                ondrop="handleAssignDrop(event)"
+                                onclick="document.getElementById('assign-file-input').click()"
+                                class="mt-1 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 text-center cursor-pointer hover:border-indigo-400 transition">
+                                <i class="fa-solid fa-paperclip text-xl text-slate-400 mb-1"></i>
+                                <p class="text-xs text-slate-400">คลิกหรือลากไฟล์มาวาง — รูปภาพ, PDF, Word, PPTX (สูงสุด 5 ไฟล์)</p>
+                                <input id="assign-file-input" type="file" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt" class="hidden" onchange="handleAssignFiles(this.files)">
+                            </div>
+                            <!-- File preview list -->
+                            <div id="assign-file-list" class="mt-2 space-y-1.5 hidden"></div>
+                        </div>
+
+                        <!-- Google Drive / URL link -->
+                        <div class="sm:col-span-2">
+                            <label class="text-xs font-bold uppercase text-slate-400">หรือแนบลิงก์ Google Drive / YouTube</label>
+                            <div class="mt-1 flex gap-2">
+                                <input id="assign-link-url" type="url" placeholder="https://drive.google.com/... หรือ https://youtube.com/..."
+                                    class="flex-1 p-3 border rounded-xl dark:bg-slate-800 dark:border-slate-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm">
+                                <button type="button" onclick="addAssignLink()"
+                                    class="px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-indigo-50 hover:text-primary transition">
+                                    <i class="fa-solid fa-plus mr-1"></i>เพิ่ม
+                                </button>
+                            </div>
+                            <div id="assign-links-list" class="mt-2 space-y-1.5 hidden"></div>
+                        </div>
+
                         <div class="sm:col-span-2">
                             <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-opacity-95 transition">
                                 <i class="fa-solid fa-paper-plane mr-1"></i>เผยแพร่งานให้นักเรียนทันที
@@ -2365,6 +2396,129 @@
         };
         // ==================== END COMPLETION ════
 
+
+        // ════════════════════════════════════════════════════
+        //  ASSIGNMENT FILE ATTACHMENTS
+        // ════════════════════════════════════════════════════
+        let assignAttachedFiles = [];
+        let assignAttachedLinks = [];
+
+        const fileIconMap = {
+            image: { icon: 'fa-file-image', color: 'text-purple-500' },
+            pdf:   { icon: 'fa-file-pdf',   color: 'text-red-500' },
+            word:  { icon: 'fa-file-word',  color: 'text-blue-500' },
+            pptx:  { icon: 'fa-file-powerpoint', color: 'text-orange-500' },
+            excel: { icon: 'fa-file-excel', color: 'text-green-500' },
+            zip:   { icon: 'fa-file-zipper', color: 'text-amber-500' },
+            other: { icon: 'fa-file',       color: 'text-slate-400' },
+        };
+
+        function getFileIconCfg(file) {
+            const t = file.type || '', n = (file.name || '').toLowerCase();
+            if (t.startsWith('image/')) return fileIconMap.image;
+            if (t === 'application/pdf' || n.endsWith('.pdf')) return fileIconMap.pdf;
+            if (t.includes('word') || n.endsWith('.docx') || n.endsWith('.doc')) return fileIconMap.word;
+            if (t.includes('presentation') || n.endsWith('.pptx') || n.endsWith('.ppt')) return fileIconMap.pptx;
+            if (t.includes('sheet') || n.endsWith('.xlsx') || n.endsWith('.xls')) return fileIconMap.excel;
+            if (n.endsWith('.zip') || n.endsWith('.rar')) return fileIconMap.zip;
+            return fileIconMap.other;
+        }
+
+        function fmtFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+            return (bytes/1048576).toFixed(1) + ' MB';
+        }
+
+        function handleAssignFiles(files) {
+            const MAX = 5;
+            Array.from(files).forEach(file => {
+                if (assignAttachedFiles.length >= MAX) { showToast('⚠️ แนบไฟล์ได้สูงสุด 5 ไฟล์', 'warning'); return; }
+                if (file.size > 10 * 1048576) { showToast('⚠️ ไฟล์ "' + file.name + '" ใหญ่เกิน 10MB', 'warning'); return; }
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        assignAttachedFiles.push({ name: file.name, size: file.size, type: file.type, dataUrl: e.target.result });
+                        renderAssignFileList();
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    assignAttachedFiles.push({ name: file.name, size: file.size, type: file.type, dataUrl: null });
+                    renderAssignFileList();
+                }
+            });
+            document.getElementById('assign-file-input').value = '';
+        }
+
+        function handleAssignDrop(e) {
+            e.preventDefault();
+            document.getElementById('assign-drop-zone').classList.remove('border-indigo-500','bg-indigo-50');
+            handleAssignFiles(e.dataTransfer.files);
+        }
+
+        function removeAssignFile(idx) { assignAttachedFiles.splice(idx, 1); renderAssignFileList(); }
+
+        function renderAssignFileList() {
+            const el = document.getElementById('assign-file-list');
+            if (!el) return;
+            if (!assignAttachedFiles.length) { el.classList.add('hidden'); return; }
+            el.classList.remove('hidden');
+            el.innerHTML = assignAttachedFiles.map((f, i) => {
+                const cfg = getFileIconCfg(f);
+                const thumb = (f.dataUrl && f.type.startsWith('image/'))
+                    ? '<img src="' + f.dataUrl + '" class="w-8 h-8 rounded object-cover flex-shrink-0">'
+                    : '<i class="fa-solid ' + cfg.icon + ' ' + cfg.color + ' text-lg flex-shrink-0"></i>';
+                return '<div class="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">'
+                    + thumb
+                    + '<div class="flex-1 min-w-0">'
+                    + '<p class="text-xs font-semibold dark:text-white truncate">' + f.name + '</p>'
+                    + '<p class="text-[10px] text-slate-400">' + fmtFileSize(f.size) + '</p>'
+                    + '</div>'
+                    + '<button type="button" onclick="removeAssignFile(' + i + ')" class="text-slate-300 hover:text-red-400 p-1 rounded">'
+                    + '<i class="fa-solid fa-xmark text-xs"></i></button>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function addAssignLink() {
+            const input = document.getElementById('assign-link-url');
+            const url = input ? input.value.trim() : '';
+            if (!url || !url.startsWith('http')) { showToast('⚠️ กรุณากรอก URL ที่ถูกต้อง', 'warning'); return; }
+            let label = '🔗 ' + url.replace(/^https?:\/\//, '').split('/')[0];
+            if (url.includes('youtube.com') || url.includes('youtu.be')) label = '▶ YouTube Video';
+            else if (url.includes('drive.google.com')) label = '📁 Google Drive';
+            else if (url.includes('docs.google.com')) label = '📄 Google Docs';
+            else if (url.includes('forms.google.com') || url.includes('docs.google.com/forms')) label = '📝 Google Forms';
+            assignAttachedLinks.push({ url, label });
+            input.value = '';
+            renderAssignLinkList();
+        }
+
+        function removeAssignLink(idx) { assignAttachedLinks.splice(idx, 1); renderAssignLinkList(); }
+
+        function renderAssignLinkList() {
+            const el = document.getElementById('assign-links-list');
+            if (!el) return;
+            if (!assignAttachedLinks.length) { el.classList.add('hidden'); return; }
+            el.classList.remove('hidden');
+            el.innerHTML = assignAttachedLinks.map((l, i) =>
+                '<div class="flex items-center gap-2 p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-800">'
+                + '<span class="text-xs font-semibold text-indigo-600 dark:text-indigo-300 flex-shrink-0">' + l.label + '</span>'
+                + '<a href="' + l.url + '" target="_blank" class="text-[10px] text-indigo-400 hover:underline truncate flex-1">' + l.url + '</a>'
+                + '<button type="button" onclick="removeAssignLink(' + i + ')" class="text-slate-300 hover:text-red-400 p-1 flex-shrink-0">'
+                + '<i class="fa-solid fa-xmark text-xs"></i></button>'
+                + '</div>'
+            ).join('');
+        }
+
+        function resetAssignAttachments() {
+            assignAttachedFiles = [];
+            assignAttachedLinks = [];
+            renderAssignFileList();
+            renderAssignLinkList();
+        }
+        // ════ END ASSIGNMENT ATTACHMENTS ════
+
         // ====================
         //  ASSIGNMENTS TRACKER
         // ====================
@@ -2433,7 +2587,11 @@
                                 ${a.classroom ? '<span class="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded">' + a.classroom + '</span>' : ''}
                                 <span class="text-[10px] ${dueColor} font-semibold"><i class="fa-regular fa-calendar mr-0.5"></i>${dueText}</span>
                                 <span class="text-[10px] text-slate-400">เต็ม ${a.maxScore} คะแนน</span>
+                                ${(a.attachments && a.attachments.length) ? '<span class="text-[10px] text-indigo-400"><i class="fa-solid fa-paperclip mr-0.5"></i>' + a.attachments.length + ' ไฟล์</span>' : ''}
+                                ${(a.links && a.links.length) ? '<span class="text-[10px] text-indigo-400"><i class="fa-solid fa-link mr-0.5"></i>' + a.links.length + ' ลิงก์</span>' : ''}
                             </div>
+                            ${(a.links && a.links.length) ? '<div class="flex flex-wrap gap-1.5 mt-1">' + a.links.map(l => '<a href="' + l.url + '" target="_blank" class="text-[10px] text-indigo-500 hover:underline bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded">' + l.label + '</a>').join('') + '</div>' : ''}
+                            ${(a.attachments && a.attachments.some(f => f.type && f.type.startsWith('image/') && f.dataUrl)) ? '<div class="flex gap-1 mt-1.5 flex-wrap">' + a.attachments.filter(f => f.type && f.type.startsWith('image/') && f.dataUrl).map(f => '<img src="' + f.dataUrl + '" class="w-10 h-10 rounded object-cover border border-slate-200 dark:border-slate-700">').join('') + '</div>' : ''}
                         </div>
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
@@ -2453,20 +2611,23 @@
             event.preventDefault();
             const newAssign = {
                 id: 'ASN-' + Date.now(),
-                title   : document.getElementById('assign-title').value.trim(),
-                desc    : document.getElementById('assign-desc').value.trim(),
-                subject : document.getElementById('assign-subject').value.trim() || '-',
-                classroom: document.getElementById('assign-class').value.trim() || 'ทุกห้อง',
-                dueDate : document.getElementById('assign-due').value,
-                maxScore: parseInt(document.getElementById('assign-score').value) || 20,
-                status  : 'pending', score: null,
-                createdAt: new Date().toISOString().slice(0,10), teacher: 'natee'
+                title    : document.getElementById('assign-title').value.trim(),
+                desc     : document.getElementById('assign-desc').value.trim(),
+                subject  : document.getElementById('assign-subject').value || '-',
+                classroom: document.getElementById('assign-class').value || 'ทุกห้อง',
+                dueDate  : document.getElementById('assign-due').value,
+                maxScore : parseInt(document.getElementById('assign-score').value) || 20,
+                status   : 'pending', score: null,
+                createdAt: new Date().toISOString().slice(0,10), teacher: 'natee',
+                attachments: assignAttachedFiles.map(f => ({ name: f.name, size: f.size, type: f.type, dataUrl: f.dataUrl })),
+                links      : assignAttachedLinks.slice()
             };
             assignmentsData.unshift(newAssign);
             saveAssignments();
             renderAssignments();
-            ['assign-title','assign-desc','assign-due','assign-class','assign-subject'].forEach(id => { document.getElementById(id).value = ''; });
+            ['assign-title','assign-desc','assign-due'].forEach(id => { document.getElementById(id).value = ''; });
             document.getElementById('assign-score').value = '20';
+            resetAssignAttachments();
             const btn = event.target.querySelector('button[type=submit]');
             btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>เผยแพร่สำเร็จ!';
             btn.classList.replace('bg-primary','bg-green-500');
