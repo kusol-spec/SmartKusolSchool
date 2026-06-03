@@ -165,8 +165,8 @@
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-slate-400 text-sm font-medium">นักเรียนทั้งหมด</span>
-                            <h3 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">1,420 คน</h3>
-                            <span class="text-green-500 text-xs font-bold mt-1 inline-block"><i class="fa-solid fa-arrow-up"></i> +4.2%</span>
+                            <h3 id="stat-students" class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">—</h3>
+                            <span id="stat-students-sub" class="text-green-500 text-xs font-bold mt-1 inline-block">—</span>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl dark:bg-blue-900 dark:text-blue-200">
                             <i class="fa-solid fa-user-graduate"></i>
@@ -175,8 +175,8 @@
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-slate-400 text-sm font-medium">บุคลากรครู</span>
-                            <h3 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">84 ท่าน</h3>
-                            <span class="text-slate-400 text-xs font-medium mt-1 inline-block">พร้อมปฏิบัติหน้าที่</span>
+                            <h3 id="stat-teachers" class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">—</h3>
+                            <span id="stat-teachers-sub" class="text-slate-400 text-xs font-medium mt-1 inline-block">—</span>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-green-50 text-green-600 flex items-center justify-center text-2xl dark:bg-green-900 dark:text-green-200">
                             <i class="fa-solid fa-user-tie"></i>
@@ -185,8 +185,8 @@
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-slate-400 text-sm font-medium">สื่อการเรียนออนไลน์</span>
-                            <h3 class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">2,150 รายการ</h3>
-                            <span class="text-indigo-500 text-xs font-bold mt-1 inline-block"><i class="fa-solid fa-plus"></i> เพิ่มขึ้นต่อเนื่อง</span>
+                            <h3 id="stat-media" class="text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">—</h3>
+                            <span id="stat-media-sub" class="text-indigo-500 text-xs font-bold mt-1 inline-block">—</span>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl dark:bg-indigo-900 dark:text-indigo-200">
                             <i class="fa-solid fa-photo-film"></i>
@@ -195,8 +195,8 @@
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700 flex items-center justify-between shadow-sm">
                         <div>
                             <span class="text-slate-400 text-sm font-medium">ผู้ใช้งานขณะนี้</span>
-                            <h3 class="text-3xl font-extrabold mt-1 text-green-500">142 คน</h3>
-                            <span class="text-slate-400 text-xs font-medium mt-1 inline-block">Real-time</span>
+                            <h3 id="stat-online" class="text-3xl font-extrabold mt-1 text-green-500">—</h3>
+                            <span id="stat-online-sub" class="text-slate-400 text-xs font-medium mt-1 inline-block">—</span>
                         </div>
                         <div class="w-12 h-12 rounded-xl bg-green-50 text-green-500 flex items-center justify-center text-2xl dark:bg-green-950 dark:text-green-300">
                             <i class="fa-solid fa-signal"></i>
@@ -1825,6 +1825,7 @@
                 const currentStatus = usersData[userIndex].status;
                 usersData[userIndex].status = currentStatus === 'Active' ? 'Inactive' : 'Active';
                 gasCall('updateUser', { id: usersData[userIndex].id, status: usersData[userIndex].status });
+                updateDashboardStats();
                 showToast(`เปลี่ยนสถานะ ${usersData[userIndex].firstName} → ${usersData[userIndex].status}`, 'info');
                 filterUsers();
             }
@@ -1894,6 +1895,7 @@
 
             closeAddUserModal();
             filterUsers();
+            updateDashboardStats();
         }
 
         // Edit User System Logic
@@ -1966,6 +1968,7 @@
                 })();
                 closeEditUserModal();
                 filterUsers();
+                updateDashboardStats();
             }
         }
 
@@ -2087,6 +2090,7 @@
             try { initCharts(); } catch(e) { console.error('initCharts error:', e); }
             try { renderUsersTable(); } catch(e) { console.error('renderUsersTable error:', e); }
             try { initAssignmentsView(); } catch(e) { console.error('initAssignmentsView error:', e); }
+            try { updateDashboardStats(); } catch(e) { console.error('updateDashboardStats error:', e); }
         }
 
         function handleLogout() {
@@ -2176,6 +2180,9 @@
                 }
                 if (sectionId === 'section-assignments') {
                     initAssignmentsView();
+                }
+                if (sectionId.includes('dashboard')) {
+                    try { updateDashboardStats(); } catch(e) {}
                 }
             }
 
@@ -2396,6 +2403,56 @@
         };
         // ==================== END COMPLETION ════
 
+
+
+        // ════════════════════════════════════════════════════
+        //  DASHBOARD STATS — คำนวณจากข้อมูลจริง
+        // ════════════════════════════════════════════════════
+        function updateDashboardStats() {
+            // ── นับจาก usersData จริง ──────────────────────
+            const students   = usersData.filter(u => u.role === 'Student' && u.status === 'Active');
+            const teachers   = usersData.filter(u => u.role === 'Teacher' && u.status === 'Active');
+            const allActive  = usersData.filter(u => u.status === 'Active');
+            const mediaCount = (allDriveFiles ? allDriveFiles.length : 0) + (localMediaRegistry ? localMediaRegistry.length : 0);
+            const formsCount = (formsData ? formsData.length : 0);
+
+            // ── stat-students ──────────────────────────────
+            const elS = document.getElementById('stat-students');
+            const elSsub = document.getElementById('stat-students-sub');
+            if (elS) elS.textContent = students.length.toLocaleString('th-TH') + ' คน';
+            if (elSsub) {
+                const pct = usersData.length > 0 ? ((students.length / usersData.length) * 100).toFixed(1) : 0;
+                elSsub.textContent = pct + '% ของผู้ใช้ทั้งหมด';
+            }
+
+            // ── stat-teachers ──────────────────────────────
+            const elT = document.getElementById('stat-teachers');
+            const elTsub = document.getElementById('stat-teachers-sub');
+            if (elT) elT.textContent = teachers.length.toLocaleString('th-TH') + ' ท่าน';
+            if (elTsub) {
+                const admin = usersData.filter(u => u.role === 'Admin' && u.status === 'Active').length;
+                elTsub.textContent = 'Admin ' + admin + ' | ครู ' + teachers.length + ' ท่าน';
+            }
+
+            // ── stat-media ─────────────────────────────────
+            const elM = document.getElementById('stat-media');
+            const elMsub = document.getElementById('stat-media-sub');
+            if (elM) elM.textContent = mediaCount.toLocaleString('th-TH') + ' รายการ';
+            if (elMsub) {
+                elMsub.textContent = 'คลังข้อสอบ ' + formsCount + ' รายการ';
+            }
+
+            // ── stat-online (Active users) ─────────────────
+            const elO = document.getElementById('stat-online');
+            const elOsub = document.getElementById('stat-online-sub');
+            if (elO) elO.textContent = allActive.length.toLocaleString('th-TH') + ' คน';
+            if (elOsub) {
+                const inactive = usersData.filter(u => u.status !== 'Active').length;
+                elOsub.textContent = 'Active ' + allActive.length + ' | Inactive ' + inactive;
+                elOsub.className = 'text-slate-400 text-xs font-medium mt-1 inline-block';
+            }
+        }
+        // ════ END DASHBOARD STATS ════
 
         // ════════════════════════════════════════════════════
         //  ASSIGNMENT FILE ATTACHMENTS
@@ -3381,6 +3438,7 @@
             resultMsg.textContent = `✅ นำเข้าสำเร็จ ${done} คน${failed > 0 ? ` (ล้มเหลว ${failed} คน)` : ''} — ข้อมูลถูกบันทึกแล้ว`;
 
             filterUsers();
+            updateDashboardStats();
             setTimeout(() => closeBulkImportModal(), 2500);
         }
         // ====================
