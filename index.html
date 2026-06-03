@@ -2819,6 +2819,53 @@
 
                 function openUploadMediaModal() { document.getElementById('upload-media-modal').classList.remove('hidden'); }
         function closeUploadMediaModal() { document.getElementById('upload-media-modal').classList.add('hidden'); }
+
+        function openMediaModal(id = null) {
+            document.getElementById('media-modal-title').textContent = id ? 'แก้ไขสื่อการเรียนการสอน' : 'เพิ่มสื่อการเรียนการสอน';
+            ['mm-title','mm-url','mm-subject','mm-size'].forEach(i => { const el = document.getElementById(i); if(el) el.value = ''; });
+            const typeEl = document.getElementById('mm-type'); if(typeEl) typeEl.value = 'pdf';
+            document.getElementById('media-modal').dataset.editId = id || '';
+            if (id) {
+                const entry = localMediaRegistry.find(m => m.id === id);
+                if (entry) {
+                    document.getElementById('mm-title').value   = entry.name || '';
+                    document.getElementById('mm-url').value     = entry.viewUrl || '';
+                    document.getElementById('mm-subject').value = entry.subject || '';
+                    document.getElementById('mm-size').value    = entry.size ? (entry.size/1048576).toFixed(1) : '';
+                }
+            }
+            document.getElementById('media-modal').classList.remove('hidden');
+        }
+
+        function closeMediaModal() {
+            document.getElementById('media-modal').classList.add('hidden');
+        }
+
+        function saveMediaEntry() {
+            const title   = document.getElementById('mm-title')?.value.trim();
+            const url     = document.getElementById('mm-url')?.value.trim();
+            const type    = document.getElementById('mm-type')?.value || 'other';
+            const subject = document.getElementById('mm-subject')?.value.trim() || '-';
+            const sizeMB  = parseFloat(document.getElementById('mm-size')?.value) || 0;
+            const editId  = document.getElementById('media-modal').dataset.editId;
+
+            if (!title || !url) { showToast('⚠️ กรุณากรอกชื่อและลิงก์ไฟล์', 'warning'); return; }
+
+            const mimeMap3 = { pdf:'application/pdf', word:'application/vnd.openxmlformats-officedocument.wordprocessingml.document', pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation', youtube:'video/youtube', other:'application/octet-stream' };
+            const entry = { id: editId || ('MED-'+Date.now()), name: title, mimeType: mimeMap3[type]||mimeMap3.other, size: sizeMB*1048576, subject, modifiedTime: new Date().toISOString(), viewUrl: url, downloadUrl: url, isLocal: true };
+
+            if (editId) {
+                const idx = localMediaRegistry.findIndex(m => m.id === editId);
+                if (idx !== -1) localMediaRegistry[idx] = entry; else localMediaRegistry.unshift(entry);
+            } else {
+                localMediaRegistry.unshift(entry);
+            }
+            localStorage.setItem('local_media', JSON.stringify(localMediaRegistry));
+            allDriveFiles = [...localMediaRegistry, ...allDriveFiles.filter(f => !f.isLocal)];
+            filterMedia(currentFilter || 'all');
+            closeMediaModal();
+            showToast('✅ ' + (editId ? 'แก้ไข' : 'เพิ่ม') + 'สื่อ "' + title + '" สำเร็จ', 'success');
+        }
         
         function openAddUserModal() { 
             document.getElementById('add-user-modal').classList.remove('hidden'); 
@@ -2874,10 +2921,10 @@
                     '<p class="text-xs text-slate-400">' + (s.id||'') + ' • ' + classroom + '</p></div>' +
                     '</div>' +
                     '<div class="flex gap-1" id="att-btns-' + s.id + '">' +
-                    '<button onclick="setAttendance('' + s.id + '','present')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition att-present-active">เข้า</button>' +
-                    '<button onclick="setAttendance('' + s.id + '','late')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition">สาย</button>' +
-                    '<button onclick="setAttendance('' + s.id + '','absent')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">ขาด</button>' +
-                    '<button onclick="setAttendance('' + s.id + '','leave')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">ลา</button>' +
+                    '<button onclick="setAttendance(\'' + s.id + '\',\'present\')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition att-present-active">เข้า</button>' +
+                    '<button onclick="setAttendance(\'' + s.id + '\',\'late\')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition">สาย</button>' +
+                    '<button onclick="setAttendance(\'' + s.id + '\',\'absent\')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition">ขาด</button>' +
+                    '<button onclick="setAttendance(\'' + s.id + '\',\'leave\')" class="att-btn px-3 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition">ลา</button>' +
                     '</div>' +
                     '</div>';
             }).join('');
@@ -3439,6 +3486,18 @@
 
         function stopExamTimer() {
             if (examTimeInterval) clearInterval(examTimeInterval);
+        }
+
+        function stopExam() {
+            stopExamTimer();
+            isExamActive = false;
+            currentActiveExam = null;
+            selectedAnswers = {};
+            activeQuestionIndex = 0;
+            const placeholder = document.getElementById('exam-placeholder');
+            const mainPanel   = document.getElementById('exam-main-panel');
+            if (placeholder) placeholder.classList.remove('hidden');
+            if (mainPanel)   mainPanel.classList.add('hidden');
         }
 
         function retryExam() {
