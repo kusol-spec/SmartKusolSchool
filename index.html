@@ -306,140 +306,66 @@
 
             <!-- SECTION 3: STUDENT DASHBOARD -->
             <section id="section-student-dashboard" class="menu-section hidden space-y-6">
-                <!-- Gamification Card Banner -->
+                <!-- Banner -->
                 <div class="bg-gradient-to-r from-primary to-purple-600 p-6 sm:p-8 rounded-3xl text-white flex flex-col md:flex-row md:items-center justify-between shadow-lg relative overflow-hidden">
                     <div class="space-y-2 z-10">
-                        <span class="bg-white bg-opacity-20 text-xs px-3 py-1 rounded-full font-bold">เทอม 1/2026</span>
-                        <h2 class="text-2xl sm:text-3xl font-extrabold" id="student-welcome-title">ยินดีต้อนรับกลับมา, เด็กชายสมรักษ์ ยอดรัก!</h2>
-                        <p class="text-sm text-indigo-100">วันนี้พร้อมเก็บเพิ่ม XP และเรียนรู้บทเรียนใหม่แล้วหรือยัง?</p>
+                        <span id="std-term-badge" class="bg-white bg-opacity-20 text-xs px-3 py-1 rounded-full font-bold">เทอม 1/2026</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold" id="student-welcome-title">ยินดีต้อนรับกลับมา!</h2>
+                        <p id="std-subtitle" class="text-sm text-indigo-100">วันนี้พร้อมเก็บเพิ่ม XP และเรียนรู้บทเรียนใหม่แล้วหรือยัง?</p>
                     </div>
-                    
-                    <!-- Gamification Engine -->
                     <div class="mt-6 md:mt-0 flex items-center space-x-6 z-10 bg-white bg-opacity-15 backdrop-blur-md p-4 rounded-2xl border border-white border-opacity-20">
                         <div class="text-center">
-                            <span class="block text-2xl font-black text-amber-300">Level 12</span>
+                            <span id="std-level" class="block text-2xl font-black text-amber-300">—</span>
                             <span class="text-[10px] uppercase tracking-wider text-indigo-100">ระดับสิทธิ์เรียน</span>
                         </div>
                         <div class="h-10 w-px bg-white bg-opacity-20"></div>
                         <div class="text-center">
-                            <span class="block text-2xl font-black text-white">4,250 XP</span>
+                            <span id="std-xp" class="block text-2xl font-black text-white">—</span>
                             <span class="text-[10px] uppercase tracking-wider text-indigo-100">คะแนนกิจกรรม</span>
                         </div>
                         <div class="h-10 w-px bg-white bg-opacity-20"></div>
                         <div class="text-center">
-                            <span class="block text-3xl"><i class="fa-solid fa-award text-yellow-300"></i></span>
-                            <span class="text-[10px] uppercase tracking-wider text-indigo-100">เหรียญทอง 4 ใบ</span>
+                            <span id="std-badge-icon" class="block text-3xl">🏅</span>
+                            <span id="std-badge-label" class="text-[10px] uppercase tracking-wider text-indigo-100">—</span>
                         </div>
                     </div>
-                    <!-- Absolute Background Circles -->
                     <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white opacity-5 rounded-full"></div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left: Subscribed Subjects & Learning Progress -->
                     <div class="lg:col-span-2 space-y-6">
+                        <!-- Subjects Progress -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700">
-                            <h3 class="font-bold text-lg mb-4">ผลการเรียนและความก้าวหน้าของวิชาเรียน</h3>
-                            <div class="space-y-4">
-                                <div>
-                                    <div class="flex justify-between items-center text-sm font-semibold mb-1">
-                                        <span>วิทยาการคำนวณ (ม.2)</span>
-                                        <span>75% (เกรด 4.0 คาดคะเน)</span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden dark:bg-slate-800">
-                                        <div class="bg-indigo-600 h-full rounded-full" style="width: 75%"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between items-center text-sm font-semibold mb-1">
-                                        <span>การเขียนโปรแกรม Scratch</span>
-                                        <span>90% (เกรด 4.0 คาดคะเน)</span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden dark:bg-slate-800">
-                                        <div class="bg-emerald-500 h-full rounded-full" style="width: 90%"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between items-center text-sm font-semibold mb-1">
-                                        <span>การออกแบบเทคโนโลยี</span>
-                                        <span>40% (ต้องเร่งทำกิจกรรม)</span>
-                                    </div>
-                                    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden dark:bg-slate-800">
-                                        <div class="bg-amber-500 h-full rounded-full" style="width: 40%"></div>
-                                    </div>
-                                </div>
+                            <h3 class="font-bold text-lg mb-4 dark:text-white">ผลการเรียนและความก้าวหน้าของวิชาเรียน</h3>
+                            <div id="std-subjects-progress" class="space-y-4">
+                                <p class="text-sm text-slate-400">กำลังโหลดข้อมูล...</p>
                             </div>
                         </div>
 
                         <!-- Leaderboard -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700">
-                            <h3 class="font-bold text-lg mb-4"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i>นักเรียนที่มีคะแนน XP สูงสุดในห้อง ม.2/1</h3>
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between p-3 bg-amber-50 bg-opacity-50 border border-amber-100 rounded-xl dark:bg-slate-800 dark:border-amber-900">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="w-6 font-bold text-center text-amber-600">🥇</span>
-                                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=128" class="w-8 h-8 rounded-full">
-                                        <span class="text-sm font-semibold">ด.ญ. สุกัญญา ขยันเรียน</span>
-                                    </div>
-                                    <span class="text-xs font-bold text-amber-600">5,410 XP</span>
-                                </div>
-                                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl dark:bg-slate-800 dark:border-slate-700">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="w-6 font-bold text-center text-slate-500">🥈</span>
-                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=128" class="w-8 h-8 rounded-full">
-                                        <span class="text-sm font-semibold">ด.ช. อนันต์ ว่องไว</span>
-                                    </div>
-                                    <span class="text-xs font-bold text-slate-500">4,900 XP</span>
-                                </div>
-                                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl dark:bg-slate-800 dark:border-slate-700">
-                                    <div class="flex items-center space-x-3">
-                                        <span class="w-6 font-bold text-center text-amber-800">🥉</span>
-                                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=128" class="w-8 h-8 rounded-full" id="student-leaderboard-avatar">
-                                        <span class="text-sm font-semibold" id="student-leaderboard-name">เด็กชายสมรักษ์ ยอดรัก (คุณ)</span>
-                                    </div>
-                                    <span class="text-xs font-bold text-amber-800">4,250 XP</span>
-                                </div>
+                            <h3 class="font-bold text-lg mb-2 dark:text-white"><i class="fa-solid fa-trophy text-amber-500 mr-2"></i>อันดับนักเรียนในห้อง</h3>
+                            <p id="std-leaderboard-title" class="text-xs text-slate-400 mb-3">—</p>
+                            <div id="std-leaderboard" class="space-y-2">
+                                <p class="text-sm text-slate-400">กำลังโหลด...</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Column: Schedule & Active Homework and badges -->
                     <div class="space-y-6">
+                        <!-- Pending assignments -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700">
-                            <h3 class="font-bold text-lg mb-4">งานค้างส่งและกิจกรรมด่วน</h3>
-                            <div class="space-y-3">
-                                <div class="p-3 bg-red-50 border-l-4 border-red-500 rounded-lg dark:bg-slate-800 flex justify-between items-center">
-                                    <div>
-                                        <h4 class="font-bold text-xs text-red-800 dark:text-red-300">แบบฝึกหัด Scratch (ม.2)</h4>
-                                        <p class="text-[10px] text-slate-400">ส่งก่อนวันนี้ 23:59 น.</p>
-                                    </div>
-                                    <button onclick="switchTab('section-assignments')" class="text-xs font-bold bg-red-500 text-white px-2 py-1 rounded">ส่งด่วน</button>
-                                </div>
-                                <div class="p-3 bg-amber-50 border-l-4 border-amber-500 rounded-lg dark:bg-slate-800 flex justify-between items-center">
-                                    <div>
-                                        <h4 class="font-bold text-xs text-amber-800 dark:text-amber-300">การสอบย่อย ครั้งที่ 2</h4>
-                                        <p class="text-[10px] text-slate-400">หมดเขตวันอาทิตย์นี้</p>
-                                    </div>
-                                    <button onclick="switchTab('section-exam-center')" class="text-xs font-bold bg-amber-500 text-white px-2 py-1 rounded">เข้าสอบ</button>
-                                </div>
+                            <h3 class="font-bold text-lg mb-4 dark:text-white">งานค้างส่งและกิจกรรมด่วน</h3>
+                            <div id="std-pending-work" class="space-y-3">
+                                <p class="text-sm text-slate-400">กำลังโหลด...</p>
                             </div>
                         </div>
 
+                        <!-- Today schedule -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 dark:bg-darkCard dark:border-slate-700">
-                            <h3 class="font-bold text-lg mb-4">ตารางเรียนวันนี้</h3>
-                            <div class="space-y-2 text-xs">
-                                <div class="p-2 border-b border-slate-100 flex justify-between dark:border-slate-800">
-                                    <span>08:30 - 09:30</span>
-                                    <span class="font-bold">วิทยาการคำนวณ</span>
-                                </div>
-                                <div class="p-2 border-b border-slate-100 flex justify-between dark:border-slate-800">
-                                    <span>09:30 - 10:30</span>
-                                    <span class="font-bold">ภาษาอังกฤษเพิ่มเติม</span>
-                                </div>
-                                <div class="p-2 border-b border-slate-100 flex justify-between dark:border-slate-800">
-                                    <span>10:30 - 11:30</span>
-                                    <span class="font-bold">คณิตศาสตร์ขั้นสูง</span>
-                                </div>
+                            <h3 class="font-bold text-lg mb-4 dark:text-white">ตารางเรียนวันนี้</h3>
+                            <div id="std-schedule" class="space-y-2 text-xs">
+                                <p class="text-sm text-slate-400">กำลังโหลด...</p>
                             </div>
                         </div>
                     </div>
@@ -1693,7 +1619,8 @@
 
         // System variables
         let currentRole = 'admin';
-        let isFirstLogin = false; // Set true to force admin password change on first login
+        let isFirstLogin = false;
+        let currentUser = null; // logged-in user object // Set true to force admin password change on first login
         let isExamActive = false;
         let examTimeInterval;
         let examTimeRemaining = 1800; // 30 mins in secs
@@ -2077,14 +2004,12 @@
                 if (kidName)   kidName.textContent = `${user.linkedStudent.firstName || ''} ${user.linkedStudent.lastName || ''} (${user.linkedStudent.classroom || ''})`;
             }
 
-            // Student: personalise welcome text
+            // Student: personalise welcome text + store current user
             if (activeRole === 'student') {
-                const welcomeEl = document.getElementById('student-welcome-title');
-                const lbAvatar  = document.getElementById('student-leaderboard-avatar');
-                const lbName    = document.getElementById('student-leaderboard-name');
-                if (welcomeEl) welcomeEl.textContent = `ยินดีต้อนรับกลับมา, ${safeName}!`;
-                if (lbAvatar)  lbAvatar.src = safeAvatar;
-                if (lbName)    lbName.textContent = `${safeName} (คุณ)`;
+                currentUser = user;
+                try { renderStudentDashboard(); } catch(e) { console.error('renderStudentDashboard:', e); }
+            } else {
+                currentUser = user;
             }
 
             try { initCharts(); } catch(e) { console.error('initCharts error:', e); }
@@ -2183,6 +2108,9 @@
                 }
                 if (sectionId.includes('dashboard')) {
                     try { updateDashboardStats(); } catch(e) {}
+                    if (sectionId === 'section-student-dashboard') {
+                        try { renderStudentDashboard(); } catch(e) { console.error('renderStudentDashboard:', e); }
+                    }
                 }
             }
 
@@ -2575,6 +2503,229 @@
             renderAssignLinkList();
         }
         // ════ END ASSIGNMENT ATTACHMENTS ════
+
+
+        // ════════════════════════════════════════════════════
+        //  STUDENT DASHBOARD — dynamic data
+        // ════════════════════════════════════════════════════
+
+        // XP data stored per student (localStorage)
+        function getStudentXP(username) {
+            const store = JSON.parse(localStorage.getItem('student_xp') || '{}');
+            return store[username] || 0;
+        }
+        function setStudentXP(username, xp) {
+            const store = JSON.parse(localStorage.getItem('student_xp') || '{}');
+            store[username] = xp;
+            localStorage.setItem('student_xp', JSON.stringify(store));
+        }
+        function xpToLevel(xp) {
+            if (xp >= 10000) return 20;
+            if (xp >= 7500)  return 18;
+            if (xp >= 5000)  return 15;
+            if (xp >= 3000)  return 12;
+            if (xp >= 1500)  return 9;
+            if (xp >= 800)   return 6;
+            if (xp >= 300)   return 3;
+            return 1;
+        }
+        function xpToBadge(xp) {
+            if (xp >= 5000)  return { icon: '🏆', label: 'เหรียญทอง 4 ใบ' };
+            if (xp >= 3000)  return { icon: '🥇', label: 'เหรียญทอง 2 ใบ' };
+            if (xp >= 1500)  return { icon: '🥈', label: 'เหรียญเงิน 3 ใบ' };
+            if (xp >= 500)   return { icon: '🥉', label: 'เหรียญทองแดง' };
+            return { icon: '🌱', label: 'เริ่มต้น' };
+        }
+
+        // Subject progress (localStorage per student)
+        const DEFAULT_SUBJECTS = [
+            { name: 'วิทยาการคำนวณ', pct: 75, color: 'bg-indigo-600' },
+            { name: 'การเขียนโปรแกรม Scratch', pct: 90, color: 'bg-emerald-500' },
+            { name: 'การออกแบบเทคโนโลยี', pct: 40, color: 'bg-amber-500' },
+        ];
+        function getStudentSubjects(username) {
+            const store = JSON.parse(localStorage.getItem('student_subjects') || '{}');
+            return store[username] || DEFAULT_SUBJECTS;
+        }
+        function pctToGrade(pct) {
+            if (pct >= 80) return '4.0';
+            if (pct >= 75) return '3.5';
+            if (pct >= 70) return '3.0';
+            if (pct >= 65) return '2.5';
+            if (pct >= 60) return '2.0';
+            if (pct >= 55) return '1.5';
+            if (pct >= 50) return '1.0';
+            return '0.0';
+        }
+        function pctToLabel(pct) {
+            if (pct >= 80) return 'เกรด ' + pctToGrade(pct) + ' ยอดเยี่ยม!';
+            if (pct >= 60) return 'เกรด ' + pctToGrade(pct) + ' คาดคะเน';
+            if (pct >= 40) return 'ต้องเร่งทำกิจกรรม';
+            return 'ต้องปรับปรุงเร่งด่วน';
+        }
+
+        // Today schedule (localStorage per classroom)
+        const DEFAULT_SCHEDULE = {
+            'ม.2/1': [
+                { time: '08:30 - 09:30', subject: 'วิทยาการคำนวณ' },
+                { time: '09:30 - 10:30', subject: 'ภาษาอังกฤษเพิ่มเติม' },
+                { time: '10:30 - 11:30', subject: 'คณิตศาสตร์ขั้นสูง' },
+                { time: '13:00 - 14:00', subject: 'วิทยาศาสตร์' },
+                { time: '14:00 - 15:00', subject: 'ภาษาไทย' },
+            ],
+        };
+        function getTodaySchedule(classroom) {
+            const store = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            return store[classroom] || DEFAULT_SCHEDULE[classroom] || DEFAULT_SCHEDULE['ม.2/1'];
+        }
+        const DAY_TH = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+        function renderStudentDashboard() {
+            // ── Get current student ────────────────────────
+            const user = usersData.find(u => u.username === (currentUser && currentUser.username ? currentUser.username : 'somrak'))
+                      || { firstName: 'นักเรียน', lastName: '', classroom: 'ม.2/1', username: 'somrak', avatar: '' };
+
+            const uname    = user.username;
+            const fullName = (user.firstName || '') + ' ' + (user.lastName || '');
+            const cls      = user.classroom || 'ม.2/1';
+
+            // Seed XP for demo students if 0
+            let xp = getStudentXP(uname);
+            if (xp === 0) {
+                xp = uname === 'somrak' ? 4250 : Math.floor(Math.random() * 3000) + 500;
+                setStudentXP(uname, xp);
+            }
+            const level  = xpToLevel(xp);
+            const badge  = xpToBadge(xp);
+
+            // ── Banner ─────────────────────────────────────
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            const term  = month >= 5 && month <= 9 ? '1' : '2';
+            const yr    = now.getFullYear() + 543;
+            const el = (id) => document.getElementById(id);
+
+            if (el('std-term-badge'))    el('std-term-badge').textContent    = 'เทอม ' + term + '/' + yr;
+            if (el('student-welcome-title')) el('student-welcome-title').textContent = 'ยินดีต้อนรับกลับมา, ' + fullName + '!';
+            if (el('std-subtitle'))      el('std-subtitle').textContent      = DAY_TH[now.getDay()] + ' ' + now.getDate() + '/' + (now.getMonth()+1) + '/' + yr + ' — วันนี้พร้อมเรียนรู้แล้วหรือยัง?';
+            if (el('std-level'))         el('std-level').textContent         = 'Level ' + level;
+            if (el('std-xp'))            el('std-xp').textContent            = xp.toLocaleString('th-TH') + ' XP';
+            if (el('std-badge-icon'))    el('std-badge-icon').textContent    = badge.icon;
+            if (el('std-badge-label'))   el('std-badge-label').textContent   = badge.label;
+
+            // ── Subjects Progress ──────────────────────────
+            const subjects = getStudentSubjects(uname);
+            const spEl = el('std-subjects-progress');
+            if (spEl) {
+                spEl.innerHTML = subjects.map(s => {
+                    const grade = pctToGrade(s.pct);
+                    const lbl   = pctToLabel(s.pct);
+                    return '<div>'
+                        + '<div class="flex justify-between items-center text-sm font-semibold mb-1 dark:text-white">'
+                        + '<span>' + s.name + '</span>'
+                        + '<span class="text-xs text-slate-500">' + s.pct + '% (' + lbl + ')</span>'
+                        + '</div>'
+                        + '<div class="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">'
+                        + '<div class="' + (s.color || 'bg-indigo-600') + ' h-full rounded-full transition-all" style="width:' + s.pct + '%"></div>'
+                        + '</div>'
+                        + '</div>';
+                }).join('');
+            }
+
+            // ── Leaderboard ────────────────────────────────
+            const classStudents = usersData.filter(u => u.role === 'Student' && u.classroom === cls);
+            // Add some demo students if only 1
+            const lbData = classStudents.map(u => ({
+                username: u.username, name: u.firstName + ' ' + u.lastName,
+                avatar: u.avatar, xp: getStudentXP(u.username) || (Math.floor(Math.random()*4000)+500),
+                isMe: u.username === uname
+            })).sort((a, b) => b.xp - a.xp);
+
+            // Ensure current student has XP
+            lbData.forEach(s => { if (!getStudentXP(s.username)) setStudentXP(s.username, s.xp); });
+
+            const medals = ['🥇','🥈','🥉'];
+            const medalColors = ['text-amber-600','text-slate-400','text-amber-800'];
+            const rowBg = ['bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900',
+                           'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700',
+                           'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700'];
+
+            const lbEl = el('std-leaderboard');
+            const lbTitle = el('std-leaderboard-title');
+            if (lbTitle) lbTitle.textContent = 'คะแนน XP สูงสุดในห้อง ' + cls + ' (' + lbData.length + ' คน)';
+            if (lbEl) {
+                lbEl.innerHTML = lbData.slice(0, 5).map((s, i) => {
+                    const medal = medals[i] || ('#' + (i+1));
+                    const mc    = medalColors[i] || 'text-slate-400';
+                    const bg    = rowBg[Math.min(i, 2)];
+                    const meTag = s.isMe ? ' <span class="text-[10px] bg-primary text-white px-1 py-0.5 rounded ml-1">คุณ</span>' : '';
+                    return '<div class="flex items-center justify-between p-3 border rounded-xl ' + bg + '">'
+                        + '<div class="flex items-center space-x-3">'
+                        + '<span class="w-6 font-bold text-center ' + mc + '">' + medal + '</span>'
+                        + '<img src="' + (s.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=128') + '" class="w-8 h-8 rounded-full object-cover">'
+                        + '<span class="text-sm font-semibold dark:text-white">' + s.name + meTag + '</span>'
+                        + '</div>'
+                        + '<span class="text-xs font-bold ' + mc + '">' + s.xp.toLocaleString('th-TH') + ' XP</span>'
+                        + '</div>';
+                }).join('');
+            }
+
+            // ── Pending Assignments ────────────────────────
+            const pending = assignmentsData.filter(a => {
+                const st = getAssignStatus(a);
+                return st === 'pending' || st === 'late';
+            }).slice(0, 4);
+
+            const pwEl = el('std-pending-work');
+            if (pwEl) {
+                if (pending.length === 0) {
+                    pwEl.innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-circle-check text-3xl text-green-400 mb-2"></i><p class="text-sm text-slate-400">ไม่มีงานค้างส่ง 🎉</p></div>';
+                } else {
+                    pwEl.innerHTML = pending.map(a => {
+                        const st  = getAssignStatus(a);
+                        const isLate = st === 'late';
+                        const due = new Date(a.dueDate);
+                        const diffDays = Math.ceil((due - new Date()) / 86400000);
+                        const dueLabel = isLate ? 'เกินกำหนดแล้ว' : diffDays === 0 ? 'ส่งวันนี้!' : diffDays === 1 ? 'ส่งพรุ่งนี้' : 'อีก ' + diffDays + ' วัน';
+                        const borderColor = isLate ? 'border-red-500' : diffDays <= 1 ? 'border-amber-500' : 'border-indigo-400';
+                        const bgColor     = isLate ? 'bg-red-50 dark:bg-red-900/10' : diffDays <= 1 ? 'bg-amber-50 dark:bg-amber-900/10' : 'bg-indigo-50 dark:bg-indigo-900/10';
+                        const titleColor  = isLate ? 'text-red-700 dark:text-red-300' : diffDays <= 1 ? 'text-amber-700 dark:text-amber-300' : 'text-indigo-700 dark:text-indigo-300';
+                        const btnColor    = isLate ? 'bg-red-500' : diffDays <= 1 ? 'bg-amber-500' : 'bg-indigo-500';
+                        return '<div class="p-3 ' + bgColor + ' border-l-4 ' + borderColor + ' rounded-lg flex justify-between items-center gap-2">'
+                            + '<div class="min-w-0">'
+                            + '<h4 class="font-bold text-xs ' + titleColor + ' truncate">' + a.title + '</h4>'
+                            + '<p class="text-[10px] text-slate-400 mt-0.5">' + dueLabel + ' • เต็ม ' + a.maxScore + ' คะแนน</p>'
+                            + '</div>'
+                            + '<button onclick="switchTab(\'section-assignments\')" class="text-xs font-bold ' + btnColor + ' text-white px-2 py-1 rounded flex-shrink-0">ส่งงาน</button>'
+                            + '</div>';
+                    }).join('');
+                }
+            }
+
+            // ── Today Schedule ─────────────────────────────
+            const schedule = getTodaySchedule(cls);
+            const schedEl  = el('std-schedule');
+            const todayName = DAY_TH[new Date().getDay()];
+            if (schedEl) {
+                schedEl.innerHTML = '<p class="text-[10px] text-slate-400 mb-2">วัน' + todayName + ' — ' + cls + '</p>'
+                    + schedule.map(s =>
+                        '<div class="p-2 border-b border-slate-100 dark:border-slate-700 flex justify-between">'
+                        + '<span class="text-slate-500">' + s.time + '</span>'
+                        + '<span class="font-bold dark:text-white">' + s.subject + '</span>'
+                        + '</div>'
+                    ).join('');
+            }
+
+            // Also update legacy IDs used by enterSystem
+            if (el('student-leaderboard-avatar')) {
+                const meInLb = lbData.find(s => s.isMe);
+                if (meInLb) el('student-leaderboard-avatar').src = meInLb.avatar || '';
+            }
+            if (el('student-leaderboard-name')) {
+                el('student-leaderboard-name').textContent = fullName + ' (คุณ)';
+            }
+        }
+        // ════ END STUDENT DASHBOARD ════
 
         // ====================
         //  ASSIGNMENTS TRACKER
