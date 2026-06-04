@@ -1706,6 +1706,33 @@
                         <option value="Inactive">Inactive (ปิดการใช้งาน/ระงับสิทธิ์)</option>
                     </select>
                 </div>
+                <!-- Avatar Upload -->
+                <div>
+                    <label class="text-xs font-bold text-slate-400">รูปโปรไฟล์</label>
+                    <div class="mt-2 flex items-center gap-4">
+                        <img id="edit-avatar-preview" src="" alt="avatar"
+                            class="w-16 h-16 rounded-full object-cover border-2 border-indigo-300 flex-shrink-0 bg-slate-200">
+                        <div class="flex-1 space-y-2">
+                            <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-3 text-center cursor-pointer hover:border-indigo-400 transition"
+                                onclick="document.getElementById('edit-avatar-file').click()"
+                                ondragover="event.preventDefault();this.classList.add('border-indigo-500')"
+                                ondragleave="this.classList.remove('border-indigo-500')"
+                                ondrop="handleAvatarDrop(event)">
+                                <i class="fa-solid fa-camera text-slate-400 mr-1"></i>
+                                <span id="edit-avatar-filename" class="text-xs text-slate-400">คลิกหรือลากรูปมาวาง (JPG, PNG, GIF ≤5MB)</span>
+                                <input id="edit-avatar-file" type="file" accept="image/*" class="hidden" onchange="handleAvatarSelect(this)">
+                            </div>
+                            <div class="flex gap-2">
+                                <input id="edit-avatar-url" type="url" placeholder="หรือวาง URL รูปภาพ"
+                                    class="flex-1 px-3 py-1.5 border border-slate-300 dark:border-slate-600 rounded-lg text-xs dark:bg-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                                <button type="button" onclick="applyAvatarUrl()" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-xs font-semibold rounded-lg hover:bg-indigo-50 hover:text-primary transition">ใช้ URL</button>
+                            </div>
+                            <div id="edit-avatar-upload-status" class="hidden text-xs text-indigo-500 font-semibold"></div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="edit-avatar-value">
+                </div>
+
                 <button type="submit" class="w-full py-3 bg-primary hover:bg-opacity-95 text-white font-bold rounded-xl transition shadow-md">บันทึกการแก้ไขข้อมูล</button>
             </form>
         </div>
@@ -1717,7 +1744,7 @@
         // ====================
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
         // ====================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbx05P2bkPNYaGa8WLiOzyrO4mrgmOOpxJ4KEicYwYDF1Rube0vANUxphphH7f4m-MHJ/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzPdAEkt5-9G7rHY_hmDR0FaEIk5N8oh1-amvmP9mruoPTiN1AHGKh_Xv-U4c12FRL_/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
         // ==================== API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
@@ -2008,6 +2035,11 @@
 
         // Edit User System Logic
         function openEditUserModal(id) {
+            // Reset avatar state
+            pendingAvatarDataUrl = null;
+            document.getElementById('edit-avatar-filename').textContent = 'คลิกหรือลากรูปมาวาง (JPG, PNG, GIF ≤5MB)';
+            document.getElementById('edit-avatar-upload-status').classList.add('hidden');
+            document.getElementById('edit-avatar-file').value = '';
             const user = usersData.find(u => u.id === id);
             if (user) {
                 document.getElementById('edit-user-id').value = user.id;
@@ -2019,6 +2051,12 @@
                 document.getElementById('edit-user-role').value = user.role;
                 document.getElementById('edit-user-classroom').value = user.classroom;
                 document.getElementById('edit-user-status').value = user.status;
+                // Avatar
+                const prevImg = document.getElementById('edit-avatar-preview');
+                const avatarUrl = user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=256';
+                if (prevImg) prevImg.src = avatarUrl;
+                document.getElementById('edit-avatar-value').value = user.avatar || '';
+                document.getElementById('edit-avatar-url').value = '';
 
                 // Load Parent Info Fields if user is Student
                 if (user.role === 'Student') {
@@ -2044,6 +2082,11 @@
             const userIndex = usersData.findIndex(u => u.id === id);
 
             if (userIndex !== -1) {
+                // Avatar — use pending upload or URL or existing
+                const newAvatar = pendingAvatarDataUrl
+                    || document.getElementById('edit-avatar-value').value.trim()
+                    || usersData[userIndex].avatar;
+                if (newAvatar) usersData[userIndex].avatar = newAvatar;
                 usersData[userIndex].firstName = document.getElementById('edit-user-firstname').value;
                 usersData[userIndex].lastName = document.getElementById('edit-user-lastname').value;
                 usersData[userIndex].email = document.getElementById('edit-user-email').value;
@@ -2705,6 +2748,122 @@
         // ════ END ASSIGNMENT ATTACHMENTS ════
 
 
+
+
+        // ════════════════════════════════════════════════════
+        //  AVATAR UPLOAD SYSTEM
+        // ════════════════════════════════════════════════════
+        const AVATAR_DRIVE_FOLDER = '1uJM-j7qTVgamtExLoYLPGnrQTUBQGCLI';
+        let pendingAvatarDataUrl = null;  // base64 dataUrl pending upload
+        let pendingAvatarFile    = null;  // File object pending upload
+
+        function handleAvatarSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            processAvatarFile(file);
+        }
+
+        function handleAvatarDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('border-indigo-500');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processAvatarFile(file);
+            } else {
+                showToast('⚠️ กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'warning');
+            }
+        }
+
+        function processAvatarFile(file) {
+            if (file.size > 5 * 1048576) { showToast('⚠️ รูปภาพต้องไม่เกิน 5MB', 'warning'); return; }
+            const nameEl   = document.getElementById('edit-avatar-filename');
+            const statusEl = document.getElementById('edit-avatar-upload-status');
+            const preview  = document.getElementById('edit-avatar-preview');
+
+            pendingAvatarFile = file;
+            if (nameEl) nameEl.textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                pendingAvatarDataUrl = e.target.result;
+                if (preview) preview.src = pendingAvatarDataUrl;
+                document.getElementById('edit-avatar-value').value = pendingAvatarDataUrl;
+                if (statusEl) {
+                    statusEl.textContent = '✅ รูปถูกเลือกแล้ว — จะบันทึกเมื่อกด "บันทึกการแก้ไขข้อมูล"';
+                    statusEl.classList.remove('hidden');
+                    statusEl.className = 'text-xs text-green-500 font-semibold';
+                }
+                // Try upload to GAS/Drive in background
+                uploadAvatarToGAS(file);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function uploadAvatarToGAS(file) {
+            if (!GAS_URL) return; // No GAS, use dataUrl only
+            const statusEl = document.getElementById('edit-avatar-upload-status');
+            if (statusEl) {
+                statusEl.textContent = '⬆️ กำลังอัปโหลดไปยัง Google Drive...';
+                statusEl.className   = 'text-xs text-indigo-500 font-semibold';
+                statusEl.classList.remove('hidden');
+            }
+
+            try {
+                // Convert to base64
+                const base64 = await new Promise((res, rej) => {
+                    const r = new FileReader();
+                    r.onload = () => res(r.result.split(',')[1]);
+                    r.onerror = () => rej(new Error('Read failed'));
+                    r.readAsDataURL(file);
+                });
+
+                const result = await gasCall('uploadAvatar', {
+                    filename  : file.name,
+                    mimeType  : file.type,
+                    base64    : base64,
+                    folderId  : AVATAR_DRIVE_FOLDER
+                });
+
+                if (result && result.ok && result.url) {
+                    pendingAvatarDataUrl = result.url;
+                    document.getElementById('edit-avatar-value').value = result.url;
+                    const preview = document.getElementById('edit-avatar-preview');
+                    if (preview) preview.src = result.url;
+                    if (statusEl) {
+                        statusEl.textContent = '✅ อัปโหลดสำเร็จ — ลิงก์ Google Drive พร้อมใช้งาน';
+                        statusEl.className   = 'text-xs text-green-500 font-semibold';
+                    }
+                } else {
+                    if (statusEl) {
+                        statusEl.textContent = '⚠️ GAS ตอบกลับผิดพลาด — ใช้รูปที่อัปโหลดแบบ local แทน';
+                        statusEl.className   = 'text-xs text-amber-500 font-semibold';
+                    }
+                }
+            } catch (err) {
+                console.error('Avatar upload error:', err);
+                if (statusEl) {
+                    statusEl.textContent = '⚠️ อัปโหลดไม่สำเร็จ — ใช้รูป local แทน';
+                    statusEl.className   = 'text-xs text-amber-500 font-semibold';
+                }
+            }
+        }
+
+        function applyAvatarUrl() {
+            const url     = document.getElementById('edit-avatar-url')?.value.trim();
+            const preview = document.getElementById('edit-avatar-preview');
+            const statusEl = document.getElementById('edit-avatar-upload-status');
+            if (!url || !url.startsWith('http')) { showToast('⚠️ URL ไม่ถูกต้อง', 'warning'); return; }
+            pendingAvatarDataUrl = url;
+            document.getElementById('edit-avatar-value').value = url;
+            if (preview) preview.src = url;
+            if (statusEl) {
+                statusEl.textContent = '✅ ใช้ URL รูปภาพที่กำหนด';
+                statusEl.classList.remove('hidden');
+                statusEl.className = 'text-xs text-green-500 font-semibold';
+            }
+            showToast('✅ ตั้ง URL รูปโปรไฟล์สำเร็จ', 'success');
+        }
+        // ════ END AVATAR UPLOAD ════
 
         // ════════════════════════════════════════════════════
         //  CLASSROOM MANAGEMENT
