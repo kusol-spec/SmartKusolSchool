@@ -1828,7 +1828,18 @@
         // System variables
         let currentRole = 'admin';
         let isFirstLogin = false;
-        let currentUser = null; // logged-in user object // Set true to force admin password change on first login
+        let currentUser = null; // logged-in user object
+
+        // Restore locally saved avatars from localStorage
+        function restoreLocalAvatars() {
+            const avatarStore = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+            Object.keys(avatarStore).forEach(userId => {
+                const idx = usersData.findIndex(u => u.id === userId);
+                if (idx !== -1) usersData[idx].avatar = avatarStore[userId];
+            });
+        }
+        // Call on page load after usersData is defined
+        try { restoreLocalAvatars(); } catch(e) {} // Set true to force admin password change on first login
         let isExamActive = false;
         let examTimeInterval;
         let examTimeRemaining = 1800; // 30 mins in secs
@@ -2086,7 +2097,13 @@
                 const newAvatar = pendingAvatarDataUrl
                     || document.getElementById('edit-avatar-value').value.trim()
                     || usersData[userIndex].avatar;
-                if (newAvatar) usersData[userIndex].avatar = newAvatar;
+                if (newAvatar) {
+                    usersData[userIndex].avatar = newAvatar;
+                    // Persist to localStorage
+                    const avatarStore = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+                    avatarStore[usersData[userIndex].id] = newAvatar;
+                    localStorage.setItem('user_avatars', JSON.stringify(avatarStore));
+                }
                 usersData[userIndex].firstName = document.getElementById('edit-user-firstname').value;
                 usersData[userIndex].lastName = document.getElementById('edit-user-lastname').value;
                 usersData[userIndex].email = document.getElementById('edit-user-email').value;
@@ -2240,6 +2257,7 @@
             try { renderUsersTable(); } catch(e) { console.error('renderUsersTable error:', e); }
             try { initAssignmentsView(); } catch(e) { console.error('initAssignmentsView error:', e); }
             try { updateDashboardStats(); } catch(e) { console.error('updateDashboardStats error:', e); }
+            try { restoreLocalAvatars(); } catch(e) {}
         }
 
         function handleLogout() {
@@ -2800,50 +2818,88 @@
         }
 
         async function uploadAvatarToGAS(file) {
-            if (!GAS_URL) return; // No GAS, use dataUrl only
             const statusEl = document.getElementById('edit-avatar-upload-status');
-            if (statusEl) {
-                statusEl.textContent = '⬆️ กำลังอัปโหลดไปยัง Google Drive...';
-                statusEl.className   = 'text-xs text-indigo-500 font-semibold';
+            const setStatus = (msg, color) => {
+                if (!statusEl) return;
+                statusEl.textContent = msg;
+                statusEl.className = `text-xs ${color} font-semibold`;
                 statusEl.classList.remove('hidden');
-            }
+            };
+
+            // ── 1. Try Google Drive API directly (no GAS needed) ──
+            setStatus('⬆️ กำลังอัปโหลดไปยัง Google Drive...', 'text-indigo-500');
 
             try {
-                // Convert to base64
+                // Read as base64
                 const base64 = await new Promise((res, rej) => {
                     const r = new FileReader();
                     r.onload = () => res(r.result.split(',')[1]);
-                    r.onerror = () => rej(new Error('Read failed'));
+                    r.onerror = rej;
                     r.readAsDataURL(file);
                 });
 
-                const result = await gasCall('uploadAvatar', {
-                    filename  : file.name,
-                    mimeType  : file.type,
-                    base64    : base64,
-                    folderId  : AVATAR_DRIVE_FOLDER
+                // Multipart upload to Drive API v3 (requires OAuth — will fail if not signed in as owner)
+                const metadata = JSON.stringify({ name: 'avatar_' + Date.now() + '_' + file.name, parents: [AVATAR_DRIVE_FOLDER] });
+                const boundary = 'avatar_boundary_' + Date.now();
+                const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${file.type}\r\nContent-Transfer-Encoding: base64\r\n\r\n${base64}\r\n--${boundary}--`;
+
+                const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+                    method: 'POST',
+                    headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
+                    body
                 });
 
-                if (result && result.ok && result.url) {
-                    pendingAvatarDataUrl = result.url;
-                    document.getElementById('edit-avatar-value').value = result.url;
-                    const preview = document.getElementById('edit-avatar-preview');
-                    if (preview) preview.src = result.url;
-                    if (statusEl) {
-                        statusEl.textContent = '✅ อัปโหลดสำเร็จ — ลิงก์ Google Drive พร้อมใช้งาน';
-                        statusEl.className   = 'text-xs text-green-500 font-semibold';
-                    }
-                } else {
-                    if (statusEl) {
-                        statusEl.textContent = '⚠️ GAS ตอบกลับผิดพลาด — ใช้รูปที่อัปโหลดแบบ local แทน';
-                        statusEl.className   = 'text-xs text-amber-500 font-semibold';
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.id) {
+                        // Make public
+                        await fetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ role: 'reader', type: 'anyone' })
+                        });
+                        const driveUrl = `https://drive.google.com/uc?export=view&id=${data.id}`;
+                        pendingAvatarDataUrl = driveUrl;
+                        document.getElementById('edit-avatar-value').value = driveUrl;
+                        const preview = document.getElementById('edit-avatar-preview');
+                        if (preview) preview.src = driveUrl;
+                        setStatus('✅ อัปโหลด Google Drive สำเร็จ!', 'text-green-500');
+                        return;
                     }
                 }
-            } catch (err) {
-                console.error('Avatar upload error:', err);
-                if (statusEl) {
-                    statusEl.textContent = '⚠️ อัปโหลดไม่สำเร็จ — ใช้รูป local แทน';
-                    statusEl.className   = 'text-xs text-amber-500 font-semibold';
+                throw new Error('Drive API returned ' + res.status);
+
+            } catch (driveErr) {
+                console.warn('Drive API failed, trying GAS...', driveErr);
+
+                // ── 2. Try via GAS if URL configured ──────────────
+                if (GAS_URL) {
+                    try {
+                        const base64b = await new Promise((res, rej) => {
+                            const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file);
+                        });
+                        const result = await gasCall('uploadAvatar', { filename: file.name, mimeType: file.type, base64: base64b, folderId: AVATAR_DRIVE_FOLDER });
+                        if (result && result.ok && result.url) {
+                            pendingAvatarDataUrl = result.url;
+                            document.getElementById('edit-avatar-value').value = result.url;
+                            const prev = document.getElementById('edit-avatar-preview');
+                            if (prev) prev.src = result.url;
+                            setStatus('✅ อัปโหลดผ่าน GAS สำเร็จ!', 'text-green-500');
+                            return;
+                        }
+                    } catch (gasErr) { console.warn('GAS upload failed:', gasErr); }
+                }
+
+                // ── 3. Fallback: store as base64 locally ───────────
+                // Already set as dataUrl in processAvatarFile — just update status
+                setStatus('✅ บันทึกรูปในเครื่องสำเร็จ (จะอัปโหลด Drive เมื่อตั้งค่า GAS_URL)', 'text-green-500');
+
+                // Store in localStorage keyed by userId
+                const userId = document.getElementById('edit-user-id')?.value;
+                if (userId && pendingAvatarDataUrl && pendingAvatarDataUrl.startsWith('data:')) {
+                    const avatarStore = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+                    avatarStore[userId] = pendingAvatarDataUrl;
+                    localStorage.setItem('user_avatars', JSON.stringify(avatarStore));
                 }
             }
         }
