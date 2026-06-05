@@ -1758,11 +1758,30 @@
             };
         })();
 
+        // ─── showToast (must be defined early) ───
+        function showToast(msg, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-indigo-600', warning: 'bg-amber-500' };
+            toast.className = `${colors[type]||colors.info} text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all`;
+            toast.style.cssText = 'opacity:0;transform:translateX(40px);';
+            toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="ml-2 opacity-60 hover:opacity-100">✕</button>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)'; setTimeout(() => toast.remove(), 300); }, 4000);
+        }
+
         // In-Memory Database Simulation
         // ====================
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
         // ====================
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzPdAEkt5-9G7rHY_hmDR0FaEIk5N8oh1-amvmP9mruoPTiN1AHGKh_Xv-U4c12FRL_/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        const GAS_URL = ''; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
         // ==================== API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
@@ -2164,45 +2183,77 @@
             const username = document.getElementById('login-username').value.trim();
             const pass     = document.getElementById('login-password').value.trim();
             const btn      = event.target.querySelector('button[type=submit]');
-            if (btn) { btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...'; }
 
-            // ==================== Try GAS first ──────────────────────────────
-            const gasResult = await gasCall('login', { username, password: pass });
-            if (btn) { btn.disabled = false; btn.textContent = 'เข้าสู่ระบบการสอน'; }
-
-            if (gasResult) {
-                if (!gasResult.ok) { showToast('❌ ' + gasResult.error, 'error'); return; }
-                // Sync usersData from GAS response if available
-                if (gasResult.user) {
-                    const exists = usersData.find(u => u.id === gasResult.user.id);
-                    if (!exists) usersData.push(gasResult.user);
-                }
-                const user = gasResult.user;
-                if (isFirstLogin && user.username === 'admin') {
-                    document.getElementById('force-password-modal').classList.remove('hidden');
-                } else {
-                    enterSystem(user, gasResult.role);
-                }
+            if (!username || !pass) {
+                showToast('⚠️ กรุณากรอก Username และ Password', 'warning');
                 return;
             }
 
-            // ==================== Fallback: local usersData ──────────────────
-            let matchedUser = usersData.find(u => u.username === username && u.password === pass);
-            if (matchedUser) {
-                if (matchedUser.status !== 'Active') { showToast('❌ บัญชีถูกระงับ กรุณาติดต่อผู้ดูแลระบบ', 'error'); return; }
-                if (isFirstLogin && matchedUser.username === 'admin' && matchedUser.password === 'admin123') {
-                    document.getElementById('force-password-modal').classList.remove('hidden');
-                } else {
+            try {
+                if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-1"></i>กำลังตรวจสอบ...'; }
+
+                // ── Try GAS first ──────────────────────────────
+                const gasResult = await gasCall('login', { username, password: pass });
+                if (btn) { btn.disabled = false; btn.textContent = 'เข้าสู่ระบบการสอน'; }
+
+                if (gasResult) {
+                    if (!gasResult.ok) { showToast('❌ ' + (gasResult.error || 'Login ไม่สำเร็จ'), 'error'); return; }
+                    if (gasResult.user) {
+                        const exists = usersData.find(u => u.id === gasResult.user.id);
+                        if (!exists) usersData.push(gasResult.user);
+                    }
+                    const user = gasResult.user;
+                    if (isFirstLogin && user.username === 'admin') {
+                        document.getElementById('force-password-modal').classList.remove('hidden');
+                    } else {
+                        enterSystem(user, gasResult.role);
+                    }
+                    return;
+                }
+
+                // ── Fallback: local usersData ──────────────────
+                let matchedUser = usersData.find(u =>
+                    u.username === username &&
+                    u.password === pass &&
+                    u.status === 'Active'
+                );
+                if (matchedUser) {
                     enterSystem(matchedUser, matchedUser.role.toLowerCase());
+                    return;
                 }
-                return;
+
+                // ── Check inactive ─────────────────────────────
+                let inactiveUser = usersData.find(u => u.username === username && u.password === pass);
+                if (inactiveUser) {
+                    showToast('❌ บัญชีนี้ถูกระงับ กรุณาติดต่อผู้ดูแลระบบ', 'error');
+                    return;
+                }
+
+                // ── Parent login ───────────────────────────────
+                let linkedStudent = usersData.find(u => u.parentUsername === username && u.parentPassword === pass);
+                if (linkedStudent) {
+                    const mockParent = {
+                        id: 'PAR-' + linkedStudent.id,
+                        username,
+                        role: 'Parent',
+                        firstName: 'ผู้ปกครองของ',
+                        lastName: linkedStudent.firstName,
+                        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256',
+                        classroom: linkedStudent.classroom,
+                        status: 'Active',
+                        linkedStudent
+                    };
+                    enterSystem(mockParent, 'parent');
+                    return;
+                }
+
+                showToast('❌ Username หรือ Password ไม่ถูกต้อง', 'error');
+
+            } catch (err) {
+                console.error('Login error:', err);
+                if (btn) { btn.disabled = false; btn.textContent = 'เข้าสู่ระบบการสอน'; }
+                showToast('❌ เกิดข้อผิดพลาด: ' + err.message, 'error');
             }
-            let linkedStudent = usersData.find(u => u.parentUsername === username && u.parentPassword === pass);
-            if (linkedStudent) {
-                enterSystem({ username: linkedStudent.parentUsername, role: 'Parent', firstName: 'ผู้ปกครองของ', lastName: linkedStudent.firstName, avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256', linkedStudent }, 'parent');
-                return;
-            }
-            showToast('❌ Username หรือ Password ไม่ถูกต้อง', 'error');
         }
 
         function handleForcePasswordSubmit(event) {
@@ -2581,23 +2632,7 @@
         // ====================
         //  TOAST NOTIFICATION
         // ====================
-        function showToast(msg, type = 'success') {
-            let container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
-                document.body.appendChild(container);
-            }
-            const toast = document.createElement('div');
-            const colors = { success: 'bg-green-600', error: 'bg-red-600', info: 'bg-indigo-600', warning: 'bg-amber-500' };
-            toast.className = `${colors[type]||colors.info} text-white text-sm px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all`;
-            toast.style.cssText = 'opacity:0;transform:translateX(40px);';
-            toast.innerHTML = `<span>${msg}</span><button onclick="this.parentElement.remove()" class="ml-2 opacity-60 hover:opacity-100">✕</button>`;
-            container.appendChild(toast);
-            requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)'; setTimeout(() => toast.remove(), 300); }, 4000);
-        }
+
 
         // Merge local media into allDriveFiles when media section loads
         const _origLoadMedia = loadMediaFiles;
