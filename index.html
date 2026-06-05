@@ -1740,6 +1740,24 @@
 
     <!-- JAVASCRIPT LOGIC CONTROLLERS -->
     <script>
+        // ════════════════════════════════════════════════════════
+        //  SAFE STORAGE — Firefox/Edge Tracking Prevention fix
+        // ════════════════════════════════════════════════════════
+        const safeStorage = (() => {
+            let _mem = {};
+            const _ls = (() => {
+                try { localStorage.setItem('__test__', '1'); localStorage.removeItem('__test__'); return localStorage; }
+                catch(e) { return null; }
+            })();
+            return {
+                get(k)    { try { if (_ls) return _ls.getItem(k); } catch(e) {} return _mem[k] ?? null; },
+                set(k, v) { try { if (_ls) { _ls.setItem(k, v); return; } } catch(e) {} _mem[k] = v; },
+                remove(k) { try { if (_ls) { _ls.removeItem(k); return; } } catch(e) {} delete _mem[k]; },
+                parse(k, fallback) { try { const v = this.get(k); return v ? JSON.parse(v) : fallback; } catch(e) { return fallback; } },
+                stringify(k, v) { this.set(k, JSON.stringify(v)); }
+            };
+        })();
+
         // In-Memory Database Simulation
         // ====================
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
@@ -1832,7 +1850,7 @@
 
         // Restore locally saved avatars from localStorage
         function restoreLocalAvatars() {
-            const avatarStore = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+            const avatarStore = safeStorage.parse('user_avatars', {});
             Object.keys(avatarStore).forEach(userId => {
                 const idx = usersData.findIndex(u => u.id === userId);
                 if (idx !== -1) usersData[idx].avatar = avatarStore[userId];
@@ -1845,7 +1863,7 @@
         let examTimeRemaining = 1800; // 30 mins in secs
 
         // Active Theme Variable (Light / Dark)
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (safeStorage.get('theme') === 'dark' || (!safeStorage.get('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             updateThemeIcon(true);
         } else {
@@ -1855,7 +1873,7 @@
 
         function toggleDarkMode() {
             const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.theme = isDark ? 'dark' : 'light';
+            safeStorage.set('theme', isDark ? 'dark' : 'light');
             updateThemeIcon(isDark);
         }
 
@@ -2100,9 +2118,9 @@
                 if (newAvatar) {
                     usersData[userIndex].avatar = newAvatar;
                     // Persist to localStorage
-                    const avatarStore = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+                    const avatarStore = safeStorage.parse('user_avatars', {});
                     avatarStore[usersData[userIndex].id] = newAvatar;
-                    localStorage.setItem('user_avatars', JSON.stringify(avatarStore));
+                    safeStorage.set('user_avatars', JSON.stringify(avatarStore));
                 }
                 usersData[userIndex].firstName = document.getElementById('edit-user-firstname').value;
                 usersData[userIndex].lastName = document.getElementById('edit-user-lastname').value;
@@ -2465,7 +2483,7 @@
         // ====================
         //  ANNOUNCEMENT SYSTEM
         // ====================
-        let announcementsLog = JSON.parse(localStorage.getItem('announcements') || '[]');
+        let announcementsLog = safeStorage.parse('announcements', []);
 
         function openAnnouncementModal() { document.getElementById('announcement-modal').classList.remove('hidden'); }
         function closeAnnouncementModal() { document.getElementById('announcement-modal').classList.add('hidden'); }
@@ -2479,7 +2497,7 @@
 
             const ann = { id: 'ANN-'+Date.now(), title, body, target, type, createdAt: new Date().toLocaleString('th-TH'), author: 'natee' };
             announcementsLog.unshift(ann);
-            localStorage.setItem('announcements', JSON.stringify(announcementsLog));
+            safeStorage.set('announcements', JSON.stringify(announcementsLog));
 
             // Show notification badge
             const badge = document.getElementById('notification-badge');
@@ -2527,7 +2545,7 @@
         // ====================
         //  UPLOAD MEDIA (local registry + Google Drive link)
         // ====================
-        let localMediaRegistry = JSON.parse(localStorage.getItem('local_media') || '[]');
+        let localMediaRegistry = safeStorage.parse('local_media', []);
 
         function handleUploadMediaSubmit(event) {
             event.preventDefault();
@@ -2550,7 +2568,7 @@
                 subject, viewUrl: url, downloadUrl: url, isLocal: true
             };
             localMediaRegistry.unshift(entry);
-            localStorage.setItem('local_media', JSON.stringify(localMediaRegistry));
+            safeStorage.set('local_media', JSON.stringify(localMediaRegistry));
 
             // Merge into allDriveFiles and re-render
             allDriveFiles = [...localMediaRegistry, ...allDriveFiles.filter(f => !f.isLocal)];
@@ -2819,89 +2837,48 @@
 
         async function uploadAvatarToGAS(file) {
             const statusEl = document.getElementById('edit-avatar-upload-status');
-            const setStatus = (msg, color) => {
+            const setStatus = (msg, cls) => {
                 if (!statusEl) return;
                 statusEl.textContent = msg;
-                statusEl.className = `text-xs ${color} font-semibold`;
+                statusEl.className = `text-xs ${cls} font-semibold`;
                 statusEl.classList.remove('hidden');
             };
 
-            // ── 1. Try Google Drive API directly (no GAS needed) ──
-            setStatus('⬆️ กำลังอัปโหลดไปยัง Google Drive...', 'text-indigo-500');
-
-            try {
-                // Read as base64
-                const base64 = await new Promise((res, rej) => {
-                    const r = new FileReader();
-                    r.onload = () => res(r.result.split(',')[1]);
-                    r.onerror = rej;
-                    r.readAsDataURL(file);
-                });
-
-                // Multipart upload to Drive API v3 (requires OAuth — will fail if not signed in as owner)
-                const metadata = JSON.stringify({ name: 'avatar_' + Date.now() + '_' + file.name, parents: [AVATAR_DRIVE_FOLDER] });
-                const boundary = 'avatar_boundary_' + Date.now();
-                const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${file.type}\r\nContent-Transfer-Encoding: base64\r\n\r\n${base64}\r\n--${boundary}--`;
-
-                const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
-                    method: 'POST',
-                    headers: { 'Content-Type': `multipart/related; boundary="${boundary}"` },
-                    body
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.id) {
-                        // Make public
-                        await fetch(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ role: 'reader', type: 'anyone' })
-                        });
-                        const driveUrl = `https://drive.google.com/uc?export=view&id=${data.id}`;
-                        pendingAvatarDataUrl = driveUrl;
-                        document.getElementById('edit-avatar-value').value = driveUrl;
-                        const preview = document.getElementById('edit-avatar-preview');
-                        if (preview) preview.src = driveUrl;
+            // ── 1. Try via GAS if URL configured ──────────────
+            if (GAS_URL) {
+                setStatus('⬆️ กำลังอัปโหลดผ่าน Google Apps Script...', 'text-indigo-500');
+                try {
+                    const base64 = await new Promise((res, rej) => {
+                        const r = new FileReader();
+                        r.onload = () => res(r.result.split(',')[1]);
+                        r.onerror = rej;
+                        r.readAsDataURL(file);
+                    });
+                    const result = await gasCall('uploadAvatar', {
+                        filename: file.name, mimeType: file.type,
+                        base64, folderId: AVATAR_DRIVE_FOLDER
+                    });
+                    if (result && result.ok && result.url) {
+                        pendingAvatarDataUrl = result.url;
+                        document.getElementById('edit-avatar-value').value = result.url;
+                        const prev = document.getElementById('edit-avatar-preview');
+                        if (prev) prev.src = result.url;
                         setStatus('✅ อัปโหลด Google Drive สำเร็จ!', 'text-green-500');
                         return;
                     }
-                }
-                throw new Error('Drive API returned ' + res.status);
-
-            } catch (driveErr) {
-                console.warn('Drive API failed, trying GAS...', driveErr);
-
-                // ── 2. Try via GAS if URL configured ──────────────
-                if (GAS_URL) {
-                    try {
-                        const base64b = await new Promise((res, rej) => {
-                            const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file);
-                        });
-                        const result = await gasCall('uploadAvatar', { filename: file.name, mimeType: file.type, base64: base64b, folderId: AVATAR_DRIVE_FOLDER });
-                        if (result && result.ok && result.url) {
-                            pendingAvatarDataUrl = result.url;
-                            document.getElementById('edit-avatar-value').value = result.url;
-                            const prev = document.getElementById('edit-avatar-preview');
-                            if (prev) prev.src = result.url;
-                            setStatus('✅ อัปโหลดผ่าน GAS สำเร็จ!', 'text-green-500');
-                            return;
-                        }
-                    } catch (gasErr) { console.warn('GAS upload failed:', gasErr); }
-                }
-
-                // ── 3. Fallback: store as base64 locally ───────────
-                // Already set as dataUrl in processAvatarFile — just update status
-                setStatus('✅ บันทึกรูปในเครื่องสำเร็จ (จะอัปโหลด Drive เมื่อตั้งค่า GAS_URL)', 'text-green-500');
-
-                // Store in localStorage keyed by userId
-                const userId = document.getElementById('edit-user-id')?.value;
-                if (userId && pendingAvatarDataUrl && pendingAvatarDataUrl.startsWith('data:')) {
-                    const avatarStore = JSON.parse(localStorage.getItem('user_avatars') || '{}');
-                    avatarStore[userId] = pendingAvatarDataUrl;
-                    localStorage.setItem('user_avatars', JSON.stringify(avatarStore));
+                } catch (gasErr) {
+                    console.warn('GAS upload failed:', gasErr);
                 }
             }
+
+            // ── 2. Fallback: base64 in safeStorage ────────────
+            const userId = document.getElementById('edit-user-id')?.value;
+            if (userId && pendingAvatarDataUrl?.startsWith('data:')) {
+                const avatarStore = safeStorage.parse('user_avatars', {});
+                avatarStore[userId] = pendingAvatarDataUrl;
+                safeStorage.set('user_avatars', JSON.stringify(avatarStore));
+            }
+            setStatus('✅ บันทึกรูปในเครื่องสำเร็จ' + (GAS_URL ? '' : ' — ตั้งค่า GAS_URL เพื่ออัปโหลด Drive'), 'text-green-500');
         }
 
         function applyAvatarUrl() {
@@ -2924,8 +2901,8 @@
         // ════════════════════════════════════════════════════
         //  CLASSROOM MANAGEMENT
         // ════════════════════════════════════════════════════
-        let classroomsData = JSON.parse(localStorage.getItem('classrooms_data') || '[]');
-        let subjectsData   = JSON.parse(localStorage.getItem('subjects_data')   || '[]');
+        let classroomsData = safeStorage.parse('classrooms_data', []);
+        let subjectsData   = safeStorage.parse('subjects_data', []);
         let editingClassId = null;
         let editingSubjId  = null;
 
@@ -2952,8 +2929,8 @@
             }
         }
 
-        function saveClassrooms() { localStorage.setItem('classrooms_data', JSON.stringify(classroomsData)); }
-        function saveSubjects()   { localStorage.setItem('subjects_data',   JSON.stringify(subjectsData));   }
+        function saveClassrooms() { safeStorage.set('classrooms_data', JSON.stringify(classroomsData)); }
+        function saveSubjects()   { safeStorage.set('subjects_data',   JSON.stringify(subjectsData));   }
 
         // ── Classroom Table ────────────────────────────────
         function renderClassroomTable() {
@@ -2985,7 +2962,7 @@
         }
 
         function getClassroomSubjects(className) {
-            const sched = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            const sched = safeStorage.parse('class_schedule', {});
             const entries = sched[className] || [];
             return [...new Set(entries.map(e => e.subject))].filter(Boolean);
         }
@@ -3168,7 +3145,7 @@
             if (!cls) { grid.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">เลือกห้องเรียนเพื่อแก้ไขตาราง</p>'; return; }
 
             // Load saved schedule
-            const store  = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            const store  = safeStorage.parse('class_schedule', {});
             const saved  = store[cls] || [];
             scheduleEdits = {};
             saved.forEach(e => { scheduleEdits[e.day + '_' + e.time] = e.subject; });
@@ -3203,7 +3180,7 @@
 
         function saveSchedule() {
             if (!currentScheduleClass) { showToast('⚠️ กรุณาเลือกห้องเรียนก่อน', 'warning'); return; }
-            const store = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            const store = safeStorage.parse('class_schedule', {});
             const entries = [];
             DAYS.forEach(day => {
                 PERIODS.forEach(period => {
@@ -3222,7 +3199,7 @@
             // Keep full schedule and also store simplified
             store[currentScheduleClass + '_full'] = entries;
 
-            localStorage.setItem('class_schedule', JSON.stringify(store));
+            safeStorage.set('class_schedule', JSON.stringify(store));
             showToast('✅ บันทึกตารางเรียน ' + currentScheduleClass + ' สำเร็จ', 'success');
 
             // Refresh student dashboard if visible
@@ -3236,13 +3213,13 @@
 
         // XP data stored per student (localStorage)
         function getStudentXP(username) {
-            const store = JSON.parse(localStorage.getItem('student_xp') || '{}');
+            const store = safeStorage.parse('student_xp', {});
             return store[username] || 0;
         }
         function setStudentXP(username, xp) {
-            const store = JSON.parse(localStorage.getItem('student_xp') || '{}');
+            const store = safeStorage.parse('student_xp', {});
             store[username] = xp;
-            localStorage.setItem('student_xp', JSON.stringify(store));
+            safeStorage.set('student_xp', JSON.stringify(store));
         }
         function xpToLevel(xp) {
             if (xp >= 10000) return 20;
@@ -3269,7 +3246,7 @@
             { name: 'การออกแบบเทคโนโลยี', pct: 40, color: 'bg-amber-500' },
         ];
         function getStudentSubjects(username) {
-            const store = JSON.parse(localStorage.getItem('student_subjects') || '{}');
+            const store = safeStorage.parse('student_subjects', {});
             return store[username] || DEFAULT_SUBJECTS;
         }
         function pctToGrade(pct) {
@@ -3300,7 +3277,7 @@
             ],
         };
         function getTodaySchedule(classroom) {
-            const store = JSON.parse(localStorage.getItem('class_schedule') || '{}');
+            const store = safeStorage.parse('class_schedule', {});
             // Try full schedule first, filter by today
             const full = store[classroom + '_full'] || store[classroom];
             if (full && full.length) {
@@ -3469,7 +3446,7 @@
         // ====================
         //  ASSIGNMENTS TRACKER
         // ====================
-        let assignmentsData = JSON.parse(localStorage.getItem('assignments_data') || '[]');
+        let assignmentsData = safeStorage.parse('assignments_data', []);
         if (assignmentsData.length === 0) {
             assignmentsData = [
                 { id: 'ASN-001', title: 'แบบฝึกหัด Scratch (ม.2)', desc: 'ทำแบบฝึกหัดบทที่ 3 Scratch เบื้องต้น', subject: 'วิทยาการคำนวณ', classroom: 'ม.2/1', dueDate: '2026-06-05', maxScore: 20, status: 'graded', score: 18, createdAt: '2026-05-28', teacher: 'natee' },
@@ -3479,7 +3456,7 @@
             saveAssignments();
         }
 
-        function saveAssignments() { localStorage.setItem('assignments_data', JSON.stringify(assignmentsData)); }
+        function saveAssignments() { safeStorage.set('assignments_data', JSON.stringify(assignmentsData)); }
 
         const assignStatusCfg = {
             pending  : { label: 'รอส่งงาน',  bg: 'bg-amber-100',  text: 'text-amber-800',  icon: 'fa-clock' },
@@ -3795,7 +3772,7 @@
 
 
         // ---- Google Forms Question Bank ----
-        let formsData = JSON.parse(localStorage.getItem('gforms_bank') || '[]');
+        let formsData = safeStorage.parse('gforms_bank', []);
         if (formsData.length === 0) {
             formsData = [
                 { id: 1, title: '"Decomposition" มีประโยชน์หลักอย่างไรในการแก้ไขปัญหาใหญ่?', url: 'https://docs.google.com/forms/', subject: 'วิทยาการคำนวณ', level: 'ม.2', diff: 'ง่าย' },
@@ -3806,7 +3783,7 @@
         let editingFormId = null;
 
         function saveForms() {
-            localStorage.setItem('gforms_bank', JSON.stringify(formsData));
+            safeStorage.set('gforms_bank', JSON.stringify(formsData));
         }
 
         const diffColor = {
@@ -3968,7 +3945,7 @@
             } else {
                 localMediaRegistry.unshift(entry);
             }
-            localStorage.setItem('local_media', JSON.stringify(localMediaRegistry));
+            safeStorage.set('local_media', JSON.stringify(localMediaRegistry));
             allDriveFiles = [...localMediaRegistry, ...allDriveFiles.filter(f => !f.isLocal)];
             filterMedia(currentFilter || 'all');
             closeMediaModal();
@@ -3984,7 +3961,7 @@
         // ====================
         //  ATTENDANCE SYSTEM (ภาพ 3)
         // ====================
-        let attendanceRecords = JSON.parse(localStorage.getItem('attendance_records') || '[]');
+        let attendanceRecords = safeStorage.parse('attendance_records', {});
         let currentAttendanceMap = {};
 
         function openCheckAttendanceModal() { openAttendanceModal(); }
@@ -4079,7 +4056,7 @@
             };
             attendanceRecords.unshift(record);
             if (attendanceRecords.length > 100) attendanceRecords = attendanceRecords.slice(0, 100);
-            localStorage.setItem('attendance_records', JSON.stringify(attendanceRecords));
+            safeStorage.stringify('attendance_records', attendanceRecords);
             const vals = Object.values(currentAttendanceMap);
             const present = vals.filter(v=>v==='present').length;
             closeAttendanceModal();
