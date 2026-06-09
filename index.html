@@ -1781,13 +1781,12 @@
         // ====================
         //  GAS CONFIG — ใส่ URL ของ Web App ที่ deploy แล้ว
         // ====================
-        const GAS_URL = ''; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzPdAEkt5-9G7rHY_hmDR0FaEIk5N8oh1-amvmP9mruoPTiN1AHGKh_Xv-U4c12FRL_/exec'; // TODO: ใส่ URL จาก Apps Script → Deploy → Web App URL
 
         // ==================== API Helper ════════════════════════════════════════
         async function gasCall(action, body = {}) {
             if (!GAS_URL) {
-                console.warn('GAS_URL ยังไม่ได้ตั้งค่า — ใช้ข้อมูล local แทน');
-                return null;
+                return null; // silent fallback to local data
             }
             try {
                 const res = await fetch(GAS_URL, {
@@ -4000,6 +3999,8 @@
         let currentAttendanceMap = {};
 
         function openCheckAttendanceModal() { openAttendanceModal(); }
+        function renderAttendanceSheet() { loadAttendanceStudents(); }
+        function saveAttendanceSession() { saveAttendance(); }
 
         function openAttendanceModal() {
             const modal = document.getElementById('attendance-modal');
