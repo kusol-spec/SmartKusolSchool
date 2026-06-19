@@ -1937,10 +1937,13 @@
                 return null; // silent fallback to local data
             }
             try {
-                const res = await fetch(GAS_URL, {
-                    method : 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body   : JSON.stringify({ action, ...body })
+                // ใช้ GET + URLSearchParams เพื่อหลีกเลี่ยง CORS preflight
+                const params = new URLSearchParams();
+                params.set('action', action);
+                params.set('payload', JSON.stringify(body));
+                const res = await fetch(`${GAS_URL}?${params.toString()}`, {
+                    method: 'GET',
+                    redirect: 'follow'
                 });
                 return await res.json();
             } catch (err) {
@@ -2117,8 +2120,11 @@
                         <button class="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded transition" onclick="openEditUserModal('${user.id}')" title="แก้ไขข้อมูล">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition" onclick="toggleUserStatus('${user.id}')" title="เปิด/ปิด บัญชี">
+                        <button class="p-2 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded transition" onclick="toggleUserStatus('${user.id}')" title="เปิด/ปิด บัญชี">
                             <i class="fa-solid fa-ban"></i>
+                        </button>
+                        <button class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition" onclick="deleteUser('${user.id}')" title="ลบผู้ใช้">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
                 `;
@@ -2159,6 +2165,29 @@
                 showToast(`เปลี่ยนสถานะ ${usersData[userIndex].firstName} → ${usersData[userIndex].status}`, 'info');
                 filterUsers();
             }
+        }
+
+        // Delete user permanently
+        function deleteUser(id) {
+            const user = usersData.find(u => u.id === id);
+            if (!user) return;
+            // ป้องกันลบตัวเอง
+            if (currentUser && currentUser.id === id) {
+                showToast('❌ ไม่สามารถลบบัญชีของตัวเองได้', 'error');
+                return;
+            }
+            const confirmed = confirm(`⚠️ ยืนยันการลบผู้ใช้?\n\nชื่อ: ${user.firstName} ${user.lastName}\nUsername: ${user.username}\nบทบาท: ${user.role}\n\nการดำเนินการนี้ไม่สามารถย้อนกลับได้`);
+            if (!confirmed) return;
+            // ลบออกจาก array
+            const idx = usersData.findIndex(u => u.id === id);
+            usersData.splice(idx, 1);
+            // บันทึกลง localStorage
+            safeStorage.set('users_data', JSON.stringify(usersData));
+            // sync ไปยัง GAS ถ้ามี
+            gasCall('deleteUser', { id });
+            updateDashboardStats();
+            showToast(`🗑️ ลบผู้ใช้ "${user.firstName} ${user.lastName}" เรียบร้อยแล้ว`, 'success');
+            filterUsers();
         }
 
         // User creation logic
