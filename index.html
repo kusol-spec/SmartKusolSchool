@@ -1937,10 +1937,13 @@
                 return null; // silent fallback to local data
             }
             try {
-                const res = await fetch(GAS_URL, {
-                    method : 'POST',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body   : JSON.stringify({ action, ...body })
+                // ใช้ GET + URLSearchParams เพื่อหลีกเลี่ยง CORS preflight
+                const params = new URLSearchParams();
+                params.set('action', action);
+                params.set('payload', JSON.stringify(body));
+                const res = await fetch(`${GAS_URL}?${params.toString()}`, {
+                    method: 'GET',
+                    redirect: 'follow'
                 });
                 return await res.json();
             } catch (err) {
